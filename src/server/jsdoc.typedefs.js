@@ -37,3 +37,16 @@
  * @property {number} minor The minor version
  * @property {number} patch The patch version
  */
+
+/**
+ * A decoded JWT
+ *
+ * @typedef {Object<string, string|number>} DecodedJwt
+ * @property {string} iss The issuer of the token
+ * @property {string} aud The intended audience of the token
+ * @property {string} sub The subject of the token
+ * @property {number} exp The expiration for the token
+ * @property {number} iat The time the token was issued
+ */
+
+export default {}

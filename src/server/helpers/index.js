@@ -1,4 +1,82 @@
-import Types from "../jsdoc.typedefs"
+import jwt from "jsonwebtoken"
+import Types from "../jsdoc.typedefs.js"
+
+/**
+ * Creates a JWT
+ *
+ * @function
+ * @name createJwt
+ * @param {Object<string, any>} [claims] Custom claims to encode into the JWT
+ * @param {string} [secret] An optional secret to sign the JWT with
+ * @param {Object<string, any>} [options] JWT issuer and expiration options
+ * @param {string} [options.expiresIn] A timespan for the JWT (ie '1hr', '10m' or a timespan in milliseconds)
+ * @param {string} [options.issuer] The authority issuing the token
+ * @param {string} [options.audience] The intended audience for the token
+ * @param {string} [options.subject] The subject of the token
+ * @returns {string} The encoded JWT value
+ */
+export function createJwt(claims, secret, options) {
+  return jwt.sign(claims, secret, options)
+}
+
+/**
+ * Decodes a given JWT string
+ *
+ * @function
+ * @name decodeJwt
+ * @param {string} val A JWT string to decode
+ * @returns {Object<string, any>|undefined} The decoded JWT value
+ */
+export function decodeJwt(val) {
+  try {
+    return jwt.decode(val)
+  } catch (err) {
+    // not a valid jwt
+    return undefined
+  }
+}
+
+/**
+ * Checks if a given JWT is valid
+ *
+ * @function
+ * @name validateJwt
+ * @param {string} val A JWT string to verify
+ * @param {string} [secret] An optional secret to sign the JWT with
+ * @returns {boolean} Whether or not the JWT valid
+ */
+export function validateJwt(val, secret) {
+  try {
+    return Boolean(
+      secret
+        ? jwt.verify(val, secret)
+        : jwt.verify(val)
+    )
+  } catch (err) {
+    return false
+  }
+}
+
+/**
+ * Checks if a given JWT has expired
+ *
+ * @function
+ * @name isJwtExpired
+ * @param {string} val A JWT string to verify
+ * @param {string} [secret] An optional secret to sign the JWT with
+ * @returns {boolean} Whether or not the JWT has expired
+ */
+export function isJwtExpired(val, secret) {
+  try {
+    return !(
+      secret
+        ? jwt.verify(val, secret)
+        : jwt.verify(val)
+    )
+  } catch (err) {
+    return err.name === "TokenExpiredError"
+  }
+}
 
 /**
  * Checks if a given value passes a semantic version format check
@@ -22,6 +100,18 @@ export function isSemver(val) {
  */
 export function isEmail(val) {
   return /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(val)
+}
+
+/**
+ * Checks if a given value passes a password format check
+ *
+ * @function
+ * @name isPassword
+ * @param {string} val The value to be validated as a password
+ * @returns {boolean} Whether or not the value is an acceptable password
+ */
+export function isPassword(val) {
+  return /^(?!.*[\s])(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W]).{8,}$/.test(val)
 }
 
 /**

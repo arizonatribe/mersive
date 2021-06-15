@@ -11,6 +11,8 @@
     "envalid": "^5.0.0",
     "express": "^4.17.1",
     "graphql": "^15.5.0",
+    "graphql-tools": "^7.0.5",
+    "jsonwebtoken": "^8.5.1",
     "knex": "^0.95.6",
     "node": "^16.1.0",
     "pino": "^6.11.3",
@@ -40,9 +42,9 @@
     "eject": "react-scripts eject",
     "prepare": "cat src/server/db/sql/schema.sql src/server/db/sql/seed.sql src/server/db/sql/custom.sql | sqlite3 database.db",
     "preserver:prod": "npm run prepare",
-    "serve:prod": "node src/server/index.js",
+    "serve:prod": "node --experimental-json-modules src/server/index.js",
     "preserver:dev": "npm run prepare",
-    "serve:dev": "nodemon src/server/index.js | pino-pretty"
+    "serve:dev": "nodemon --experimental-json-modules src/server/index.js | pino-pretty"
   },
   "browserslist": {
     "production": [

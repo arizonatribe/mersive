@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
 import knex from "knex"
-import { isEmail, sortVersions } from "../helpers"
-import Types from "../jsdoc.typedefs"
+import { validateJwt, decodeJwt, isEmail, isPassword, createJwt, sortVersions } from "../helpers/index.js"
+import Types from "../jsdoc.typedefs.js"
 
 /**
  * Creates a database connection and provides basic ORM methods.
@@ -43,24 +43,24 @@ export default function createDbClient(config, logger) {
      * Fetches the current list of all devices
      *
      * @function
-     * @name DbClient#findDevices
+     * @name DbClient#findAllDevices
      * @returns {Promise<Array<Types.Device>>} A promise which resolves with a list of Devices
      */
-    async findDevices() {
+    async findAllDevices() {
       try {
         const devicesWithFirmware = await sql.raw(`
           SELECT
-            device.id as id,
-            device.name as name,
-            device.user_email as email,
-            firmware.major as major
+            devices.id as id,
+            devices.name as name,
+            devices.user_email as email,
+            firmware.major as major,
             firmware.minor as minor,
             firmware.patch as patch,
             updates.finished as finished
           FROM
             devices
-          LEFT OUTER JOIN firmware_versions as firmware ON devices.firmware_version_id = firmware_versions.id
-          LEFT OUTER JOIN updates ON devices.id = updates.device_id
+          LEFT JOIN firmware_versions as firmware ON devices.firmware_version_id = firmware.id
+          LEFT JOIN updates ON devices.id = updates.device_id
         `)
 
         logger.debug({ devicesWithFirmware })
@@ -112,17 +112,17 @@ export default function createDbClient(config, logger) {
       try {
         const devicesWithFirmware = await sql.raw(`
           SELECT
-            device.id as id,
-            device.name as name,
-            device.user_email as email,
-            firmware.major as major
+            devices.id as id,
+            devices.name as name,
+            devices.user_email as email,
+            firmware.major as major,
             firmware.minor as minor,
             firmware.patch as patch,
             updates.finished as finished
           FROM
             devices
-          LEFT OUTER JOIN firmware_versions as firmware ON devices.firmware_version_id = firmware_versions.id
-          LEFT OUTER JOIN updates ON devices.id = updates.device_id
+          LEFT JOIN firmware_versions as firmware ON devices.firmware_version_id = firmware.id
+          LEFT JOIN updates ON devices.id = updates.device_id
           WHERE
             devices.user_email = '${email}'
         `)
@@ -206,17 +206,17 @@ export default function createDbClient(config, logger) {
       try {
         const devicesWithFirmware = await sql.raw(`
           SELECT
-            device.id as id,
-            device.name as name,
-            device.user_email as email,
+            devices.id as id,
+            devices.name as name,
+            devices.user_email as email,
             firmware.major as major
             firmware.minor as minor,
             firmware.patch as patch,
             updates.finished as finished
           FROM
             devices
-          LEFT OUTER JOIN firmware_versions as firmware ON devices.firmware_version_id = firmware_versions.id
-          LEFT OUTER JOIN updates ON devices.id = updates.device_id
+          LEFT JOIN firmware_versions as firmware ON devices.firmware_version_id = firmware.id
+          LEFT JOIN updates ON devices.id = updates.device_id
           WHERE
             devices.id = ${id}
         `)
@@ -269,14 +269,14 @@ export default function createDbClient(config, logger) {
         const usersWithPermissions = await sql.raw(`
           SELECT
             users.email as email,
-            users.admin as isAdmin
+            users.admin as isAdmin,
             permissions.permission as permission,
             (users.subscription_ends < CURRENT_TIMESTAMP) as isSubscriptionExpired
           FROM
             users
-          LEFT OUTER JOIN user_permissions ON user.email = user_permissions.user_email
+          LEFT JOIN user_permissions as permissions ON users.email = permissions.user_email
           WHERE
-            user.email = '${email}'
+            users.email = '${email}'
         `)
 
         logger.debug({ usersWithPermissions })
@@ -308,6 +308,58 @@ export default function createDbClient(config, logger) {
     },
 
     /**
+     * Fetches the current list of all users whose subscription has ended
+     *
+     * @function
+     * @name DbClient#findExpiredUsers
+     * @returns {Promise<Array<Types.User>>} A promise which resolves with a list of Users with expired subscriptions
+     */
+    async findExpiredUsers() {
+      try {
+        const usersWithPermissions = await sql.raw(`
+          SELECT
+            users.email as email,
+            users.admin as isAdmin,
+            permissions.permission as permission
+          FROM
+            users
+          LEFT JOIN user_permissions as permissions ON users.email = permissions.user_email
+          WHERE users.subscription_ends < CURRENT_TIMESTAMP
+          ORDER BY users.email
+        `)
+
+        logger.debug({ usersWithPermissions })
+
+        const users = {}
+
+        for (const user of usersWithPermissions) {
+          const devices = users[user.email]
+            ? users[user.email].devices
+            : await dbClient.findDevicesByEmail(user.email)
+
+          users[user.email] = {
+            devices,
+            email: user.email,
+            isAdmin: !!user.isAdmin,
+            isSubscriptionExpired: true,
+            permissions: Array.from(
+              new Set([
+                ...(users[user.email]?.permissions || []),
+                user.permission
+              ].filter(Boolean))
+            )
+          }
+        }
+
+        logger.debug({ users })
+
+        return Object.values(users)
+      } catch (err) {
+        logger.error(err)
+      }
+    },
+
+    /**
      * Fetches the current list of all users
      *
      * @function
@@ -319,12 +371,12 @@ export default function createDbClient(config, logger) {
         const usersWithPermissions = await sql.raw(`
           SELECT
             users.email as email,
-            users.admin as isAdmin
+            users.admin as isAdmin,
             permissions.permission as permission,
             (users.subscription_ends < CURRENT_TIMESTAMP) as isSubscriptionExpired
           FROM
             users
-          LEFT OUTER JOIN user_permissions ON user.email = user_permissions.user_email
+          LEFT JOIN user_permissions as permissions ON users.email = permissions.user_email
           ORDER BY users.email
         `)
 
@@ -344,7 +396,7 @@ export default function createDbClient(config, logger) {
             isSubscriptionExpired: !!user.isSubscriptionExpired,
             permissions: Array.from(
               new Set([
-                ...(users[user.email].permissions || []),
+                ...(users[user.email]?.permissions || []),
                 user.permission
               ].filter(Boolean))
             )
@@ -356,6 +408,66 @@ export default function createDbClient(config, logger) {
         return Object.values(users)
       } catch (err) {
         logger.error(err)
+      }
+    },
+
+    /**
+     * Authenticates a user by their credentials
+     *
+     * @function
+     * @throws {Error} When the email is missing or in an invalid format
+     * @throws {Error} When the password is missing or in an invalid format
+     * @throws {Error} When the credentials are invalid (or the user doesn't exist)
+     * @name DbClient#authenticateUser
+     * @param {string} email The user's email address
+     * @param {string} password The user's password
+     * @returns {Promise<string>} A promise which resolves with a valid access token
+     */
+    async authenticateUser(email, password) {
+      logger.debug({ email, password: password != null ? "[REDACTED]" : password })
+
+      if (password == null) {
+        throw new Error("Missing the password")
+      }
+      if (!isPassword(password)) {
+        throw new Error([
+          "Password is not in a valid format",
+          "Should be a mix of alpha-numeric (mixed case) and at least one symbol",
+          "Should be at least 8 characters total as well"
+        ].join(". "))
+      }
+
+      const user = await dbClient.findUserByEmail(email)
+
+      // TODO: For the sake of this coding exercise, password salting & hashing is ignored (would require database schema changes)
+      if (!user) {
+        throw new Error("Invalid login credentials", 401, { email })
+      }
+
+      return createJwt(
+        {},
+        config.secret, {
+          issuer: config.name,
+          subject: email,
+          expiresIn: "1h",
+          audience: [config.host, config.port].join(":")
+        }
+      )
+    },
+
+    /**
+     * Validates a given access token
+     *
+     * @function
+     * @name DbClient#verifyToken
+     * @param {string} token The access token
+     * @returns {Promise<Types.DecodedJwt|undefined>} A decoded, validated token
+     */
+    async verifyToken(token) {
+      if (validateJwt(token, config.secret)) {
+        const decoded = decodeJwt(token)
+        logger.debug({ decoded })
+        return decoded
       }
     }
   }

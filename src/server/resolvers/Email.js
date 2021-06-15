@@ -1,5 +1,5 @@
 import { GraphQLScalarType, GraphQLError, Kind } from "graphql"
-import { isEmail } from "../helpers"
+import { isEmail } from "../helpers/index.js"
 
 /**
  * A custom GraphQLScalarType which ensures a value is an email address

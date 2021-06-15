@@ -21,6 +21,11 @@ export default envalid.cleanEnv(process.env, {
     desc: "The logging threshold level",
     choices: ["trace", "debug", "info", "warn", "error", "fatal"]
   }),
+  JWT_SECRET: str({
+    default: "stubbed-for-coding-exercise",
+    desc: "A secret value used when the server signs (and verifies) JWT access tokens",
+    docs: "https://stackoverflow.com/questions/42826251/what-should-be-the-secret-in-jwt#answer-42826453"
+  }),
   DB_HOST: str({
     default: "",
     desc: "The host/hostname for the database connection"

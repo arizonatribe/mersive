@@ -1,6 +1,6 @@
 import express from "express"
-import appConfig from "./config"
-import createServer from "./createServer"
+import appConfig from "./config/index.js"
+import createServer from "./createServer.js"
 
 /**
  * A function which creates the ExpressJs application and sets up the GraphQL ApolloServer instance and wires it into the connect middleware
