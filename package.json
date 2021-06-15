@@ -10,6 +10,7 @@
     "apollo-server-express": "^2.24.1",
     "envalid": "^5.0.0",
     "express": "^4.17.1",
+    "faker": "^5.5.3",
     "graphql": "^15.5.0",
     "graphql-tools": "^7.0.5",
     "jsonwebtoken": "^8.5.1",
@@ -23,8 +24,8 @@
     "react-scripts": "4.0.3",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^2.0.3",
-    "styled-components": "^5.3.0",
     "sqlite3": "^5.0.2",
+    "styled-components": "^5.3.0",
     "vanillas": "^1.3.1",
     "web-vitals": "^1.0.1"
   },

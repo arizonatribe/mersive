@@ -1,7 +1,7 @@
 import { ApolloServer } from "apollo-server-express"
-import createLogger from "pino"
-import { decodeJwt } from "./helpers/index.js"
-import createDbClient from "./db/client.js"
+
+import mock from "./db/mock.js"
+import createContext from "./context/index.js"
 import * as exportedResolvers from "./resolvers/index.js"
 import * as exportedDirectives from "./directives/index.js"
 import typeDefs from "./types/index.js"
@@ -15,27 +15,16 @@ import typeDefs from "./types/index.js"
  * @returns {Object<string, any>} The instance of Apollo GraphQL server
  */
 export default function createApolloServer(config = {}) {
-  const { name, level, shouldPrettyPrint } = config
-
-  const logger = createLogger({ level, prettyPrint: shouldPrettyPrint, name })
-  const context = {
-    config,
-    logger,
-    dbClient: createDbClient(config, logger)
-  }
-
   return new ApolloServer({
-    async context({ req = {} }) {
-      const authHeader = req.headers?.Authorization || req.headers?.authorization
-      /* If there's an authorization header, attempt to decode it and look-up the corresponding user */
-      if (/^Bearer\s/.test(authHeader)) {
-        const [_, token] = authHeader.split(/\s/).filter(Boolean)
-        const { sub: email } = decodeJwt(token)
-        const user = await context.dbClient.findUserByEmail(email)
-        return { token, user, ...context }
-      }
+    ...(config.shouldMockResolvers && { mock }),
 
-      return context
+    /*
+     * Apollo server provides this so you can inject common (non-importable) dependencies into all the resolvers/directives
+     * These dependencies are usually derived from the app config and/or the inbound request
+     * (rather than dependencies you can import)
+     */
+    async context({ req = {} }) {
+      return createContext(config, req)
     },
 
     typeDefs,

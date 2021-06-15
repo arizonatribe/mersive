@@ -1,6 +1,7 @@
 export { Query } from "./Query.js"
 export { Mutation } from "./Mutation.js"
 export { Jwt } from "./Jwt.js"
+export { DecodedJwt } from "./DecodedJwt.js"
 export { User } from "./User.js"
 export { Email } from "./Email.js"
 export { Password } from "./Password.js"
