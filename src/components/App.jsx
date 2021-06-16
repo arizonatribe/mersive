@@ -1,8 +1,7 @@
-/* eslint-disable no-console */
-import React, { useEffect, useState } from "react"
-import { verifyToken } from "./api/index.js"
+import React, { useState } from "react"
+import { Page, Header, MessageWrapper, Main } from "./Layout"
+import { WithAuthentication } from "./WithAuthentication"
 import { Devices } from "./Devices"
-import { Login } from "./Login"
 
 /**
  * The main component (or entry point) for the React App
@@ -13,28 +12,26 @@ import { Login } from "./Login"
  */
 function App() {
   const [token, setToken] = useState("")
+  const [message, setMessage] = useState("")
 
-  /**
-   * Checks to see if there's an auth token and if it's still valid
-   *
-   * @function
-   * @name checkToken
-   */
-  async function checkToken() {
-    try {
-      const accessToken = localStorage.getItem("token")
-      await verifyToken(accessToken)
-      setToken(accessToken)
-    } catch (err) {
-      setToken("")
-    }
-  }
-
-  useEffect(() => {
-    checkToken()
-  }, [])
-
-  return (token ? <Devices /> : <Login setToken={setToken} />)
+  return (
+    <WithAuthentication
+      token={token}
+      setToken={setToken}
+      setMessage={setMessage}
+    >
+      <Page>
+        <Header>
+          <MessageWrapper hasMessage={!!message}>
+            {message}
+          </MessageWrapper>
+        </Header>
+        <Main>
+          <Devices token={token} setMessage={setMessage} />
+        </Main>
+      </Page>
+    </WithAuthentication>
+  )
 }
 
 export default App

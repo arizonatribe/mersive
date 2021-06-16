@@ -1,4 +1,5 @@
 import ms from "ms"
+import PropTypes from "prop-types"
 import React, { useEffect, useState } from "react"
 import { Header, Icon, Loader, Popup } from "semantic-ui-react"
 
@@ -70,9 +71,12 @@ const columns = [{
  *
  * @function
  * @name Devices
+ * @param {string} [token] The current access token for the user's authenticated session
+ * @param {function} props.setMessage A callback function to place messages into the page which are generated from activity in this component
+ * @param {function} props.setToken A callback function which updates the current access token
  * @returns {React.Component} The rendered JSX component
  */
-function Devices() {
+function Devices({ setMessage, setToken, token }) {
   const [currentPage, setCurrent] = useState(1)
   const [total, setTotal] = useState(0)
   const [size, setSize] = useState(10)
@@ -122,21 +126,16 @@ function Devices() {
     }
   }
 
-  /**
-   * Fetches the data to display in the data table rows
-   *
-   * @function
-   * @name fetchData
-   */
-  async function fetchData() {
-    const data = await fetchDevices()
-    setTotal(data ? data.length : 0)
-    setDevices(data)
-  }
-
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchDevices(token)
+      .then(data => {
+        setTotal(data ? data.length : 0)
+        setDevices(data)
+      })
+      .catch(err => {
+        setMessage(err.message)
+      })
+  }, [setMessage, setToken, token])
 
   return (
     <DataTable
@@ -163,6 +162,12 @@ function Devices() {
       }
     />
   )
+}
+
+Devices.propTypes = {
+  token: PropTypes.string,
+  setToken: PropTypes.func.isRequired,
+  setMessage: PropTypes.func.isRequired
 }
 
 export { Devices }

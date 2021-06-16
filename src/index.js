@@ -3,7 +3,6 @@ import ReactDOM from "react-dom"
 import { ThemeProvider } from "styled-components"
 import "semantic-ui-css/semantic.min.css"
 import "./index.css"
-import Layout from "./components/Layout"
 import App from "./components/App"
 import reportWebVitals from "./reportWebVitals.js"
 import theme from "./components/theme.js"
@@ -11,9 +10,7 @@ import theme from "./components/theme.js"
 ReactDOM.render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
-      <Layout>
-        <App />
-      </Layout>
+      <App />
     </ThemeProvider>
   </React.StrictMode>,
   document.getElementById("root")

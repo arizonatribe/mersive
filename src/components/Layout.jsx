@@ -1,6 +1,5 @@
-import React from "react"
 import PropTypes from "prop-types"
-import styled, { withTheme } from "styled-components"
+import styled from "styled-components"
 
 export const Main = styled.main`
   height: 100%;
@@ -37,7 +36,7 @@ export const Page = styled.div`
   }
 `
 
-const MessageWrapper = styled.div`
+export const MessageWrapper = styled.div`
   grid-area: statusmessage;
   @media ${props => props.theme.breakpoints.phone || "screen and (max-width: 599px)"} {
     display: none;
@@ -58,10 +57,6 @@ const MessageWrapper = styled.div`
 
 MessageWrapper.propTypes = {
   hasMessage: PropTypes.bool
-}
-
-MessageWrapper.defaultProps = {
-  hasMessage: false
 }
 
 export const Header = styled.header`
@@ -88,32 +83,3 @@ export const Header = styled.header`
     }
   }
 `
-
-/**
- * The main layout wrapper
- *
- * @function
- * @name Layout
- * @param {string} [props.message] A message to display in the header
- * @param {React.Element} props.children Content to render inside the layout wrapper
- * @returns {React.Component} The rendered layout component
- */
-function Layout({ message, children }) {
-  return (
-    <Page>
-      <Header>
-        <MessageWrapper hasMessage={!!message}>
-          {message}
-        </MessageWrapper>
-      </Header>
-      <Main>{children}</Main>
-    </Page>
-  )
-}
-
-Layout.propTypes = {
-  message: PropTypes.string,
-  children: PropTypes.element.isRequired
-}
-
-export default withTheme(Layout)
