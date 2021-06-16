@@ -1,5 +1,5 @@
 import env from "./env.js"
-import Types from "../jsdoc.typedefs.js"
+import Types from "../../jsdoc.typedefs.js"
 import pkg from "../../../package.json"
 
 const connection = env.DB_HOST && env.DB_PASSWORD && env.DB_USERNAME

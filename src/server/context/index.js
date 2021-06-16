@@ -1,6 +1,6 @@
 import createLogger from "pino"
 import createDbClient from "../db/client.js"
-import { decodeJwt } from "../helpers/index.js"
+import { decodeJwt } from "../../helpers/index.js"
 
 /**
  * Creates the dependencies and config values which are shared across GraphQL resolvers and directives

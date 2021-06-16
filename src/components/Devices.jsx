@@ -1,13 +1,12 @@
-import {
-  Header,
-  Icon,
-  Loader,
-  Popup
-} from "semantic-ui-react"
+import ms from "ms"
 import React, { useEffect, useState } from "react"
+import { Header, Icon, Loader, Popup } from "semantic-ui-react"
+
+import Types from "../jsdoc.typedefs.js"
 import { DataTable } from "./DataTable"
 import { Pagination } from "./Pagination"
 import { fetchDevices } from "./api/index.js"
+import { sortVersions } from "../helpers/index.js"
 
 const UpToDateIcon = () => {
   const icon = <Icon name="checkmark" color="green" />
@@ -26,30 +25,44 @@ const UnauthorizedUserIcon = () => {
 
 const columns = [{
   id: "updated",
-  render: (row) => row.iconExample && <UpdateInProgressIcon />,
-  collapsing: true
+  collapsing: true,
+  render: (row) => (
+    row.inProgress
+      ? <UpdateInProgressIcon />
+      : row.isCurrent
+        ? <UpToDateIcon />
+        : null
+  )
 }, {
   id: "user",
   header: "User",
   render: (row) => (
     <>
-      {"my@email.com"}
+      {row.user?.email}
       &nbsp;
-      {row.iconExample && <UnauthorizedUserIcon />}
+      {row.user?.canPerformUpdates && <UnauthorizedUserIcon />}
     </>
   )
 }, {
   id: "name",
   header: "Name",
-  render: (row) => "My Device"
+  render: (row) => row.name
 }, {
   id: "version",
   header: "Firmware",
-  render: (row) => "1.0.0"
+  render: (row) => row.version
 }, {
   id: "updated",
   header: "Last Updated",
-  render: (row) => "1 Hour Ago"
+  render(row) {
+    if (row.lastUpdatedAt != null) {
+      if (ms("1d") > (Date.now() - row.lastUpdatedAt)) {
+        return `${ms(Date.now() - row.lastUpdatedAt, { long: true })} ago`
+      }
+      return (new Date(row.lastUpdatedAt)).toLocaleString().split(/\s/).replace(/,/g, "")
+    }
+    return row.lastUpdatedAt
+  }
 }]
 
 /**
@@ -65,7 +78,49 @@ function Devices() {
   const [size, setSize] = useState(10)
   const [sizes, setSizes] = useState([10, 25, 50])
   const [devices, setDevices] = useState([])
-  const [isAscending, setAscendingDirection] = useState(true)
+  const [currentlySelectedColumn, setCurrentlySelectedColumn] = useState("user")
+  const [columnSort, setColumnSort] = useState(
+    columns.reduce((sortObj, col) => ({
+      ...sortObj,
+      [col.id]: true
+    }), {})
+  )
+
+  /**
+   * Sorts the device data by a specified device field (or sub-field)
+   *
+   * @function
+   * @name sortData
+   * @param {string} columnId The column ID/name to sort by
+   * @returns {Array<Types.Device>} The sorted devices
+   */
+  function sortData(columnId) {
+    const isAscending = !columnSort[columnId]
+
+    setColumnSort({ ...columnSort, [columnId]: isAscending })
+    setCurrentlySelectedColumn(columnId)
+
+    switch (columnId) {
+      case "name":
+        return setDevices(
+          devices.sort((a, b) => (isAscending ? b.name - a.name : a.name - b.name))
+        )
+      case "user":
+        return setDevices(
+          devices.sort((a, b) => (
+            isAscending ? b.user.email - a.user.email : a.user.email - b.user.email
+          ))
+        )
+      case "updated":
+        return setDevices(
+          devices.sort((a, b) => (isAscending ? b.lastUpdatedAt - a.lastUpdatedAt : a.lastUpdatedAt - b.lastUpdatedAt))
+        )
+      case "version":
+        return setDevices(sortVersions(devices, isAscending))
+      default:
+        return devices
+    }
+  }
 
   /**
    * Fetches the data to display in the data table rows
@@ -87,11 +142,11 @@ function Devices() {
     <DataTable
       data={devices}
       sortBy={{
-        columnId: "user",
-        ascending: isAscending
+        columnId: currentlySelectedColumn,
+        ascending: columnSort[currentlySelectedColumn]
       }}
       columns={columns}
-      sort={(columnId) => console.log({ columnId })}
+      sort={sortData}
       header={<Header>Devices to Update</Header>}
       footer={
         <Pagination
@@ -101,10 +156,7 @@ function Devices() {
           sizes={sizes}
           setCurrent={setCurrent}
           setSize={(pageSize) => {
-            setSizes([
-              ...sizes,
-              pageSize
-            ])
+            setSizes([...sizes, pageSize])
             setSize(pageSize)
           }}
         />

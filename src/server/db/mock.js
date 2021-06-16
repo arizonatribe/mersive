@@ -1,5 +1,5 @@
 import faker from "faker"
-import { createJwt, decodeJwt, validateJwt } from "../helpers/index.js"
+import { createJwt, decodeJwt, validateJwt } from "../../helpers/index.js"
 import pkg from "../../../package.json"
 
 const createDevice = () => ({

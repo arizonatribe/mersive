@@ -48,6 +48,9 @@ export default gql`
     isCurrent: Boolean
     # Whether this device is currently being updated
     inProgress: Boolean
+    # The owner of the device
+    user: User
+    lastUpdatedAt: Float
   }
 
   type Query {

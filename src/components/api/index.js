@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+import Types from "../../jsdoc.typedefs.js"
+
 const port = process.env.PORT || 4000
 const host = process.env.HOST || "localhost"
 const url = `http://${host}:${port}/graphql`
@@ -9,6 +11,7 @@ const url = `http://${host}:${port}/graphql`
  * @function
  * @name hasGraphqlError
  * @param {Object<string, any>} result The API result
+ * @param {Array<Types.GraphQLError>} [result.errors] The location for GraphQL errors (according to the GQL spec) where errors and warnings are stored (either in successful or unsuccessful responses)
  * @returns {boolean} Whether or not there are GQL errors
  */
 function hasGraphqlError(result) {
@@ -16,13 +19,24 @@ function hasGraphqlError(result) {
 }
 
 /**
- * A single device object
+ * Parses a list (potentially) multiple GraphQL errors into a single error message
  *
- * @typedef {Object<string, string>} Device
- * @property {string} id The unique identifier for the device
- * @property {string} name The name of the device
- * @property {Array<string>} [versions] The semantic releases for the device
+ * @function
+ * @name parseErrors
+ * @param {Object<string, any>} result The API result
+ * @param {Array<Types.GraphQLError>} [result.errors] The location for GraphQL errors (according to the GQL spec) where errors and warnings are stored (either in successful or unsuccessful responses)
+ * @param {Object<string, any>} [response] The fetch API response
+ * @param {number} [response.status] The HTTP response code (checked as a fallback when no GQL errors, to see if >= 400)
+ * @param {string} [response.statusText] The HTTP response status text (fallback in case there are no errors but the error status is still >= 400)
+ * @returns {Error|undefined} A single error message (from the list of multiple GraphQL errors) which can then be thrown
  */
+function parseError(result, response) {
+  return hasGraphqlError(result)
+    ? new Error(result.errors.map(e => e.message).join(". "))
+    : response?.status >= 400
+      ? new Error(response.statusText)
+      : undefined
+}
 
 /**
  * Signs in a user by their credentials
@@ -38,7 +52,7 @@ export async function loginUser(email, password) {
     method: "post",
     headers: {
       "Content-Type": "application/json",
-      Accept: "application.json"
+      Accept: "application/json"
     },
     body: JSON.stringify({
       query: `mutation {
@@ -48,8 +62,10 @@ export async function loginUser(email, password) {
   })
 
   const result = await response.json()
-  if (response.status >= 400 || hasGraphqlError(result)) {
-    throw new Error(result.errors.map(e => e.message).join(". ") || response.statusText)
+
+  const err = parseError(result, response)
+  if (err) {
+    throw err
   }
 
   return result?.data?.login || result
@@ -68,7 +84,7 @@ export async function verifyToken(token) {
     method: "post",
     headers: {
       "Content-Type": "application/json",
-      Accept: "application.json"
+      Accept: "application/json"
     },
     body: JSON.stringify({
       query: `{
@@ -80,8 +96,10 @@ export async function verifyToken(token) {
   })
 
   const result = await response.json()
-  if (response.status >= 400 || hasGraphqlError(result)) {
-    throw new Error(result.errors.map(e => e.message).join(". ") || response.statusText)
+
+  const err = parseError(result, response)
+  if (err) {
+    throw err
   }
 
   return result?.data?.verifyToken?.sub
@@ -93,42 +111,72 @@ export async function verifyToken(token) {
  * @function
  * @name fetchDevices
  * @param {string} [token] The bearer token to use in the request
- * @returns {Promise<Array<Device>>} A promise which resolves with the requested device data
+ * @returns {Promise<Array<Types.Device>>} A promise which resolves with the requested device data
  */
 export async function fetchDevices(token) {
-  try {
-    const response = await fetch(url, {
-      method: "post",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application.json",
-        ...(token && { Authorization: `Bearer ${token}` })
-      },
-      body: JSON.stringify({
-        query: `{
-          devices {
-            id
-            name
-            versions
+  const response = await fetch(url, {
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(token && { Authorization: `Bearer ${token}` })
+    },
+    body: JSON.stringify({
+      query: `{
+        devices {
+          id
+          name
+          version
+          isCurrent
+          inProgress
+          lastUpdatedAt
+          user {
+            email
+            canPerformUpdates
+            isSubscriptionExpired
           }
-        }`
-      })
+        }
+      }`
     })
+  })
 
-    console.debug({
-      status: response.status,
-      statusText: response.statusText
-    })
+  const result = await response.json()
 
-    const result = await response.json()
-    console.debug({ result })
-
-    return result
-  } catch (err) {
-    console.warn("Failed to fetch data")
-    console.error(err)
-
-    /* Treating this more of like a "search" query, so an empty list and a  204 (rather than a 404) is most appropiate */
-    return []
+  const err = parseError(result, response)
+  if (err) {
+    throw err
   }
+
+  return result?.data?.devices || []
+}
+
+/**
+ * An async function which retrieves the latest firmware version
+ *
+ * @function
+ * @name fetchLatestFirmwareVersion
+ * @returns {Promise<string>} A promise which resolves with the semantic version representing the latest firmware
+ */
+export async function fetchLatestFirmwareVersion() {
+  const response = await fetch(url, {
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    },
+    body: JSON.stringify({
+      query: `{
+        getLatestFirmwareVersion
+      }`
+    })
+  })
+
+  const result = await response.json()
+
+  const err = parseError(result, response)
+  if (err) {
+    throw err
+  }
+
+  return result?.data?.getLatestFirmwareVersion
 }

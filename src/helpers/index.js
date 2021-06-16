@@ -111,21 +111,42 @@ export function isPassword(val) {
 }
 
 /**
+ * Parse a semantic version string into major/minor/parts (if needed)
+ *
+ * @function
+ * @name splitVersionIntoParts
+ * @param {Object<string, any>} val The objet containing the semantic version
+ * @param {string} val.version The semantic version
+ * @returns {Types.Version} The parsed major/minor/patch parts
+ */
+export function splitVersionIntoParts(val) {
+  return (val.major == null || val.minor == null || val.patch == null) && typeof val.version === "string"
+    ? {
+      ...val,
+      major: +val.version.split(".")[0],
+      minor: +val.version.split(".")[1],
+      patch: +val.version.split(".")[2]
+    }
+    : val
+}
+
+/**
  * Sorts a list of major/minor/patch parts in order from latest to earliest versions
  *
  * @function
  * @name sortVersions
  * @param {Array<Types.Version>} versions A list of semantic version parts
+ * @param {boolean} [latestFirst] Whether or not to sort so that the newer versions are first in the list
  * @returns {Array<Types.Version>} The sorted list of semantic versions
  */
-export function sortVersions(versions) {
-  return versions.sort((v1, v2) => (
+export function sortVersions(versions, latestFirst = true) {
+  return versions.map(splitVersionIntoParts).sort((v1, v2) => (
     (
       v2.major > v1.major
       || (v2.major === v1.major && v2.minor > v1.minor)
       || (v2.major === v1.major && v2.minor === v1.minor && v2.patch > v1.patch)
     )
-      ? 1
-      : -1
+      ? (latestFirst ? 1 : -1)
+      : (latestFirst ? -1 : 1)
   ))
 }

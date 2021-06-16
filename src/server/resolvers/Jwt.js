@@ -1,5 +1,5 @@
 import { GraphQLScalarType, GraphQLError, Kind } from "graphql"
-import { isJwtExpired, decodeJwt } from "../helpers/index.js"
+import { isJwtExpired, decodeJwt } from "../../helpers/index.js"
 
 /**
  * A custom GraphQLScalarType which ensures a value is a JWT access token

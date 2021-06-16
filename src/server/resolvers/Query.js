@@ -1,5 +1,5 @@
 import { ApolloError } from "apollo-server-express"
-import Types from "../jsdoc.typedefs.js"
+import Types from "../../jsdoc.typedefs.js"
 
 export const Query = {
   /**

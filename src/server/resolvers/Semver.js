@@ -1,5 +1,5 @@
 import { GraphQLScalarType, GraphQLError, Kind } from "graphql"
-import { isSemver } from "../helpers/index.js"
+import { isSemver } from "../../helpers/index.js"
 
 /**
  * A custom GraphQLScalarType which ensures a value is a semantic version

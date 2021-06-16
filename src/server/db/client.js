@@ -8,8 +8,8 @@ import {
   isPassword,
   createJwt,
   sortVersions
-} from "../helpers/index.js"
-import Types from "../jsdoc.typedefs.js"
+} from "../../helpers/index.js"
+import Types from "../../jsdoc.typedefs.js"
 
 /**
  * Creates a database connection and provides basic ORM methods.
@@ -77,12 +77,15 @@ export default function createDbClient(config, logger) {
         const currentVersion = await dbClient.findLatestVersion()
 
         devicesWithFirmware.forEach(device => {
-          const [{ major, minor, patch }] = sortVersions(devicesWithFirmware.filter(d => d.id === device.id))
+          const deviceUpdates = devicesWithFirmware.filter(d => d.id === device.id)
+          const [{ finished: lastUpdatedAt }] = deviceUpdates.sort((a, b) => b.finished - a.finished)
+          const [{ major, minor, patch }] = sortVersions(deviceUpdates)
           const version = `${major}.${minor}.${patch}`
 
           devices[device.id] = {
             id: device.id,
             version,
+            lastUpdatedAt,
             name: device.name,
             email: device.email,
             inProgress: device.finished != null,
@@ -141,12 +144,15 @@ export default function createDbClient(config, logger) {
         const currentVersion = await dbClient.findLatestVersion()
 
         devicesWithFirmware.forEach(device => {
-          const [{ major, minor, patch }] = sortVersions(devicesWithFirmware.filter(d => d.id === device.id))
+          const deviceUpdates = devicesWithFirmware.filter(d => d.id === device.id)
+          const [{ finished: lastUpdatedAt }] = deviceUpdates.sort((a, b) => b.finished - a.finished)
+          const [{ major, minor, patch }] = sortVersions(deviceUpdates)
           const version = `${major}.${minor}.${patch}`
 
           devices[device.id] = {
             id: device.id,
             version,
+            lastUpdatedAt,
             name: device.name,
             inProgress: device.finished != null,
             isCurrent: version === currentVersion
@@ -238,9 +244,12 @@ export default function createDbClient(config, logger) {
         const [{ major, minor, patch }] = sortVersions(devicesWithFirmware)
         const version = `${major}.${minor}.${patch}`
         const currentVersion = await dbClient.findLatestVersion()
+        const [{ finished: lastUpdatedAt }] = devicesWithFirmware.sort((a, b) => b.finished - a.finished)
+
         const device = {
           id,
           version,
+          lastUpdatedAt,
           name: devicesWithFirmware[0].name,
           inProgress: devicesWithFirmware.some(d => d.finished != null),
           isCurrent: version === currentVersion
