@@ -1,4 +1,5 @@
 import faker from "faker"
+import { createJwt, decodeJwt, validateJwt } from "../helpers/index.js"
 import pkg from "../../../package.json"
 
 const createDevice = () => ({
@@ -9,6 +10,25 @@ const createDevice = () => ({
 })
 
 export default {
+  Query: () => ({
+    verifyToken(_, { token }) {
+      return validateJwt(token, process.env.JWT_SECRET)
+        ? decodeJwt(token)
+        : null
+    }
+  }),
+  Mutation: () => ({
+    login(_, { email }) {
+      return createJwt(
+        {},
+        process.env.JWT_SECRET, {
+          subject: email,
+          audience: `http://${process.env.HOST || "localhost"}:${process.env.PORT || 4000}`,
+          issuer: pkg.name
+        }
+      )
+    }
+  }),
   DecodedJwt: () => ({
     iat: faker.date.recent().valueOf(),
     sub: faker.internet.email(),

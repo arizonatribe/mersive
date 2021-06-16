@@ -100,7 +100,18 @@ export const Query = {
    * @returns {Promise<Types.DecodedJwt>} The decoded token
    */
   async verifyToken(_, { token }, { dbClient }) {
-    return dbClient.verifyToken(token)
+    try {
+      const decoded = await dbClient.verifyToken(token)
+      return decoded
+    } catch (err) {
+      const status = /(missing|invalid)/i.test(err.message)
+        ? 400
+        : /expired/i.test(err.message)
+          ? 401
+          : 403
+
+      throw new ApolloError(err.message, status)
+    }
   },
 
   /**

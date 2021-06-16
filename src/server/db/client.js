@@ -1,6 +1,14 @@
 /* eslint-disable consistent-return */
 import knex from "knex"
-import { validateJwt, decodeJwt, isEmail, isPassword, createJwt, sortVersions } from "../helpers/index.js"
+import {
+  validateJwt,
+  isJwtExpired,
+  decodeJwt,
+  isEmail,
+  isPassword,
+  createJwt,
+  sortVersions
+} from "../helpers/index.js"
 import Types from "../jsdoc.typedefs.js"
 
 /**
@@ -460,15 +468,24 @@ export default function createDbClient(config, logger) {
      *
      * @function
      * @name DbClient#verifyToken
+     * @throws {Error} When the acces token is invalid, missing, or wasn't issued by this server
      * @param {string} token The access token
      * @returns {Promise<Types.DecodedJwt|undefined>} A decoded, validated token
      */
     async verifyToken(token) {
-      if (validateJwt(token, config.secret)) {
-        const decoded = decodeJwt(token)
-        logger.debug({ decoded })
-        return decoded
+      if (token == null) {
+        throw new Error("Token is missing")
       }
+      if (isJwtExpired(token, config.secret)) {
+        throw new Error("Token has expired")
+      }
+      if (!validateJwt(token, config.secret)) {
+        throw new Error("Invalid access token")
+      }
+
+      const decoded = decodeJwt(token)
+      logger.debug({ decoded })
+      return decoded
     }
   }
 

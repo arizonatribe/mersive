@@ -42,16 +42,12 @@ export function decodeJwt(val) {
  * @function
  * @name validateJwt
  * @param {string} val A JWT string to verify
- * @param {string} [secret] An optional secret to sign the JWT with
+ * @param {string} secret An optional secret to sign the JWT with
  * @returns {boolean} Whether or not the JWT valid
  */
 export function validateJwt(val, secret) {
   try {
-    return Boolean(
-      secret
-        ? jwt.verify(val, secret)
-        : jwt.verify(val)
-    )
+    return Boolean(jwt.verify(val, secret))
   } catch (err) {
     return false
   }
@@ -68,11 +64,11 @@ export function validateJwt(val, secret) {
  */
 export function isJwtExpired(val, secret) {
   try {
-    return !(
-      secret
-        ? jwt.verify(val, secret)
-        : jwt.verify(val)
-    )
+    if (secret) {
+      return !jwt.verify(val, secret)
+    }
+    const { exp } = decodeJwt(val) || {}
+    return exp == null || (exp * 1000) < Date.now()
   } catch (err) {
     return err.name === "TokenExpiredError"
   }

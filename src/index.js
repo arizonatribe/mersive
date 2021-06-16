@@ -1,13 +1,20 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import "./index.css"
-import App from "./components/App"
-import reportWebVitals from "./reportWebVitals"
+import { ThemeProvider } from "styled-components"
 import "semantic-ui-css/semantic.min.css"
+import "./index.css"
+import Layout from "./components/Layout"
+import App from "./components/App"
+import reportWebVitals from "./reportWebVitals.js"
+import theme from "./components/theme.js"
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <ThemeProvider theme={theme}>
+      <Layout>
+        <App />
+      </Layout>
+    </ThemeProvider>
   </React.StrictMode>,
   document.getElementById("root")
 )
