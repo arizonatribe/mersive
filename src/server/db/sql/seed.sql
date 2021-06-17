@@ -1,15 +1,13 @@
--- DO NOT MODIFY THIS FILE
-
 INSERT INTO user_permissions
   ("user_email", "permission")
 VALUES
-  ('tbarnes@greendale.edu', 'delete'),
-  ('tbarnes@greendale.edu', 'update'),
-  ('bperry@greendale.edu', 'update'),
-  ('aedison@greendale.edu', 'delete'),
-  ('sbennett@greendale.edu', 'update'),
-  ('sbennett@greendale.edu', 'delete'),
-  ('jwinger@greendale.edu', 'delete')
+  ('yolanda_brekk21@yahoo.com', 'delete'),
+  ('yolanda_brekk21@yahoo.com', 'update'),
+  ('prince68@gmail.com', 'update'),
+  ('emilio_cassin86@hotmail.com', 'delete'),
+  ('kailey.abshire@hotmail.com', 'update'),
+  ('kailey.abshire@hotmail.com', 'delete'),
+  ('lenna96@yahoo.com', 'delete')
 ;
 
 INSERT INTO users
@@ -20,37 +18,37 @@ INSERT INTO users
 )
 VALUES
 (
-  'jwinger@greendale.edu',
+  'lenna96@yahoo.com',
   true,
   DATETIME('NOW', '+5 DAYS')
 ),
 (
-  'anadir@greendale.edu',
+  'jordy.batz15@gmail.com',
   true,
   DATETIME('NOW', '+6 DAYS')
 ),
 (
-  'phawthorne@aol.com',
+  'alaina.gleichner@hotmail.com',
   false,
   DATETIME('NOW', '+3 DAYS')
 ),
 (
-  'aedison@greendale.edu',
+  'emilio_cassin86@hotmail.com',
   false,
   DATETIME('NOW', '+4 DAYS')
 ),
 (
-  'sbennett@greendale.edu',
+  'kailey.abshire@hotmail.com',
   false,
   DATETIME('NOW', '+2 DAYS')
 ),
 (
-  'tbarnes@greendale.edu',
+  'yolanda_brekk21@yahoo.com',
   true,
   DATETIME('NOW', '-5 DAYS')
 ),
 (
-  'bperry@greendale.edu',
+  'prince68@gmail.com',
   false,
   DATETIME('NOW', '+1 DAYS')
 );
@@ -79,218 +77,218 @@ INSERT INTO devices
 VALUES
 (
   'PC',
-  'jwinger@greendale.edu',
+  'lenna96@yahoo.com',
   1
 ),
 (
   'Phone',
-  'jwinger@greendale.edu',
+  'lenna96@yahoo.com',
   2
 ),
 (
   'Tablet',
-  'jwinger@greendale.edu',
+  'lenna96@yahoo.com',
   3
 ),
 (
   'Television',
-  'jwinger@greendale.edu',
+  'lenna96@yahoo.com',
   4
 ),
 (
   'Watch',
-  'jwinger@greendale.edu',
+  'lenna96@yahoo.com',
   5
 ),
 (
   'Robot',
-  'jwinger@greendale.edu',
+  'lenna96@yahoo.com',
   6
 ),
 
 (
   'PC',
-  'anadir@greendale.edu',
+  'jordy.batz15@gmail.com',
   2
 ),
 (
   'Phone',
-  'anadir@greendale.edu',
+  'jordy.batz15@gmail.com',
   3
 ),
 (
   'Tablet',
-  'anadir@greendale.edu',
+  'jordy.batz15@gmail.com',
   4
 ),
 (
   'Television',
-  'anadir@greendale.edu',
+  'jordy.batz15@gmail.com',
   5
 ),
 (
   'Watch',
-  'anadir@greendale.edu',
+  'jordy.batz15@gmail.com',
   6
 ),
 (
   'Robot',
-  'anadir@greendale.edu',
+  'jordy.batz15@gmail.com',
   1
 ),
 
 (
   'PC',
-  'phawthorne@aol.com',
+  'alaina.gleichner@hotmail.com',
   3
 ),
 (
   'Phone',
-  'phawthorne@aol.com',
+  'alaina.gleichner@hotmail.com',
   4
 ),
 (
   'Tablet',
-  'phawthorne@aol.com',
+  'alaina.gleichner@hotmail.com',
   5
 ),
 (
   'Television',
-  'phawthorne@aol.com',
+  'alaina.gleichner@hotmail.com',
   6
 ),
 (
   'Watch',
-  'phawthorne@aol.com',
+  'alaina.gleichner@hotmail.com',
   1
 ),
 (
   'Robot',
-  'phawthorne@aol.com',
+  'alaina.gleichner@hotmail.com',
   2
 ),
 
 (
   'PC',
-  'aedison@greendale.edu',
+  'emilio_cassin86@hotmail.com',
   4
 ),
 (
   'Phone',
-  'aedison@greendale.edu',
+  'emilio_cassin86@hotmail.com',
   5
 ),
 (
   'Tablet',
-  'aedison@greendale.edu',
+  'emilio_cassin86@hotmail.com',
   6
 ),
 (
   'Television',
-  'aedison@greendale.edu',
+  'emilio_cassin86@hotmail.com',
   1
 ),
 (
   'Watch',
-  'aedison@greendale.edu',
+  'emilio_cassin86@hotmail.com',
   2
 ),
 (
   'Robot',
-  'aedison@greendale.edu',
+  'emilio_cassin86@hotmail.com',
   3
 ),
 
 (
   'PC',
-  'sbennett@greendale.edu',
+  'kailey.abshire@hotmail.com',
   4
 ),
 (
   'Phone',
-  'sbennett@greendale.edu',
+  'kailey.abshire@hotmail.com',
   5
 ),
 (
   'Tablet',
-  'sbennett@greendale.edu',
+  'kailey.abshire@hotmail.com',
   6
 ),
 (
   'Television',
-  'sbennett@greendale.edu',
+  'kailey.abshire@hotmail.com',
   1
 ),
 (
   'Watch',
-  'sbennett@greendale.edu',
+  'kailey.abshire@hotmail.com',
   2
 ),
 (
   'Robot',
-  'sbennett@greendale.edu',
+  'kailey.abshire@hotmail.com',
   3
 ),
 
 (
   'PC',
-  'tbarnes@greendale.edu',
+  'yolanda_brekk21@yahoo.com',
   5
 ),
 (
   'Phone',
-  'tbarnes@greendale.edu',
+  'yolanda_brekk21@yahoo.com',
   6
 ),
 (
   'Tablet',
-  'tbarnes@greendale.edu',
+  'yolanda_brekk21@yahoo.com',
   1
 ),
 (
   'Television',
-  'tbarnes@greendale.edu',
+  'yolanda_brekk21@yahoo.com',
   2
 ),
 (
   'Watch',
-  'tbarnes@greendale.edu',
+  'yolanda_brekk21@yahoo.com',
   3
 ),
 (
   'Robot',
-  'tbarnes@greendale.edu',
+  'yolanda_brekk21@yahoo.com',
   4
 ),
 
 (
   'PC',
-  'bperry@greendale.edu',
+  'prince68@gmail.com',
   6
 ),
 (
   'Phone',
-  'bperry@greendale.edu',
+  'prince68@gmail.com',
   1
 ),
 (
   'Tablet',
-  'bperry@greendale.edu',
+  'prince68@gmail.com',
   2
 ),
 (
   'Television',
-  'bperry@greendale.edu',
+  'prince68@gmail.com',
   3
 ),
 (
   'Watch',
-  'bperry@greendale.edu',
+  'prince68@gmail.com',
   4
 ),
 (
   'Robot',
-  'bperry@greendale.edu',
+  'prince68@gmail.com',
   5
 );
 
