@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { decodeJwt } from "../../helpers/index.js"
 import Types from "../../jsdoc.typedefs.js"
 
 const port = process.env.PORT || 4000
@@ -101,16 +102,30 @@ export async function verifyToken(token) {
  * @returns {Promise<Array<Types.Device>>} A promise which resolves with the requested device data
  */
 export async function fetchDevices(token) {
-  const response = await fetch(url, {
-    method: "post",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...(token && { Authorization: `Bearer ${token}` })
-    },
-    body: JSON.stringify({
-      query: `{
-        devices {
+  if (!token) {
+    throw new Error("Only authenticated users can search for devices")
+  }
+  const email = await verifyToken(token)
+  const { scope } = decodeJwt(token) || {}
+  const query = /can_perform_updates/.test(scope)
+    ? `{
+      devices {
+        id
+        name
+        version
+        isCurrent
+        inProgress
+        lastUpdatedAt
+        user {
+          email
+          canPerformUpdates
+          isSubscriptionExpired
+        }
+      }
+    }`
+    : /can_view_own_devices/.test(scope)
+      ? `{
+        getDevicesByEmail(email: "${email}") {
           id
           name
           version
@@ -124,7 +139,20 @@ export async function fetchDevices(token) {
           }
         }
       }`
-    })
+      : undefined
+
+  if (!query) {
+    return []
+  }
+
+  const response = await fetch(url, {
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(token && { Authorization: `Bearer ${token}` })
+    },
+    body: JSON.stringify({ query })
   })
 
   const result = await response.json()
@@ -134,7 +162,7 @@ export async function fetchDevices(token) {
     throw err
   }
 
-  return result?.data?.devices || []
+  return result?.data?.devices || result?.data?.getDevicesByEmail || []
 }
 
 /**

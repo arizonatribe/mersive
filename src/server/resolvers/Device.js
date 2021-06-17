@@ -8,9 +8,9 @@ export default {
     }
     return dt
   },
-  async user({ email }, _, { loaders }) {
+  async user({ email }, _, { dbClient }) {
     if (email) {
-      return loaders.users.load(email)
+      return dbClient.findUserByEmail(email)
     }
     return null
   }

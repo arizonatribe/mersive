@@ -37,18 +37,29 @@ export default class isDeviceUser extends SchemaDirectiveVisitor {
      */
     async function enhancedResolve(source, args, context, info) {
       const { user, dbClient } = context
-      const { id, deviceId } = args
-
-      if (!id && !deviceId) {
-        throw new UserInputError(
-          "Missing the device ID, so cannot verify this user can run this query against devices"
-        )
-      }
+      const { id, deviceId, email } = args
 
       if (!user) {
         throw new ApolloError(
           "Only authenticated users are allowed to perform this query",
           401
+        )
+      }
+
+      if (email != null && user.email !== email) {
+        throw new UserInputError(
+          "Cannot view the devices for other users",
+          { email }
+        )
+      }
+
+      if (email === user.email) {
+        return resolve.call(this, source, args, context, info)
+      }
+
+      if (!id && !deviceId) {
+        throw new UserInputError(
+          "Missing the device ID, so cannot verify this user can run this query against devices"
         )
       }
 
@@ -65,7 +76,9 @@ export default class isDeviceUser extends SchemaDirectiveVisitor {
         return resolve.call(this, source, args, context, info)
       }
 
-      return Promise.reject(new ForbiddenError(`User ${user.email} is not associated with device '${deviceId || id}'`))
+      return Promise.reject(
+        new ForbiddenError(`User ${user.email} is not associated with device '${deviceId || id}'`)
+      )
     }
 
     field.resolve = enhancedResolve

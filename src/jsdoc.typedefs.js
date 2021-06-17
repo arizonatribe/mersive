@@ -49,6 +49,7 @@
  * @property {string} sub The subject of the token
  * @property {number} exp The expiration for the token
  * @property {number} iat The time the token was issued
+ * @property {string} scope The permissions scoped to the access token
  */
 
 /**

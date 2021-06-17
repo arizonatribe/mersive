@@ -88,6 +88,7 @@ export default function createDbClient(config, logger) {
           devices[device.id] = {
             id: device.id,
             version,
+            email: device.email,
             lastUpdatedAt,
             name: device.name,
             email: device.email,
@@ -157,6 +158,7 @@ export default function createDbClient(config, logger) {
           devices[device.id] = {
             id: device.id,
             version,
+            email,
             lastUpdatedAt,
             name: device.name,
             inProgress: device.finished != null,
@@ -258,6 +260,7 @@ export default function createDbClient(config, logger) {
           version,
           lastUpdatedAt,
           name: deviceWithUpdates[0].name,
+          email: deviceWithUpdates[0].email,
           inProgress: deviceWithUpdates.some(d => d.finished != null),
           isCurrent: version === currentVersion
         }
@@ -471,15 +474,18 @@ export default function createDbClient(config, logger) {
         throw new Error("Invalid login credentials", 401, { email })
       }
 
-      return createJwt(
-        {},
-        config.secret, {
-          issuer: config.name,
-          subject: email,
-          expiresIn: "1h",
-          audience: [config.host, config.port].join(":")
-        }
-      )
+      return createJwt({
+        scope: `can_view_own_devices${
+          user.isAdmin || (user.permissions || []).includes("update")
+            ? " can_perform_updates"
+            : ""
+        }`
+      }, config.secret, {
+        issuer: config.name,
+        subject: email,
+        expiresIn: "1h",
+        audience: [config.host, config.port].join(":")
+      })
     },
 
     /**
