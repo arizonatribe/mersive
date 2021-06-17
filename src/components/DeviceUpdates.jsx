@@ -90,7 +90,7 @@ function DeviceUpdates({ setMessage, token }) {
   const [currentPage, setCurrent] = useState(1)
   const [total, setTotal] = useState(0)
   const [size, setSize] = useState(10)
-  const [sizes, setSizes] = useState([10, 25, 50])
+  const [sizes] = useState([10, 25, 50])
   const [devices, setDevices] = useState([])
   const [currentlySelectedColumn, setCurrentlySelectedColumn] = useState("user")
   const [columnSort, setColumnSort] = useState(
@@ -99,6 +99,18 @@ function DeviceUpdates({ setMessage, token }) {
       [col.id]: true
     }), {})
   )
+
+  /**
+   * Paginates a list of devices
+   *
+   * @function
+   * @name paginate
+   * @param {Array<Types.Device>} items The devices to paginate
+   * @returns {Array<Types.Device>} The paginated list of devices
+   */
+  function paginate(items) {
+    return items.slice((currentPage - 1) * size, currentPage * size)
+  }
 
   /**
    * Sorts the device data by a specified device field (or sub-field)
@@ -116,39 +128,31 @@ function DeviceUpdates({ setMessage, token }) {
 
     switch (columnId) {
       case "name":
-        return setDevices(
-          devices.slice().sort((a, b) => (
-            b.name < a.name
-              ? (isAscending ? 1 : -1)
-              : (isAscending ? -1 : 1)
-          ))
-        )
+        return devices.slice().sort((a, b) => (
+          b.name < a.name
+            ? (isAscending ? 1 : -1)
+            : (isAscending ? -1 : 1)
+        ))
       case "user":
-        return setDevices(
-          devices.slice().sort((a, b) => (
-            b.user?.email < a.user?.email
-              ? (isAscending ? 1 : -1)
-              : (isAscending ? -1 : 1)
-          ))
-        )
+        return devices.slice().sort((a, b) => (
+          b.user?.email < a.user?.email
+            ? (isAscending ? 1 : -1)
+            : (isAscending ? -1 : 1)
+        ))
       case "updated":
-        return setDevices(
-          devices.slice().sort((a, b) => (
-            isAscending
-              ? b.lastUpdatedAt - a.lastUpdatedAt
-              : a.lastUpdatedAt - b.lastUpdatedAt
-          ))
-        )
+        return devices.slice().sort((a, b) => (
+          isAscending
+            ? b.lastUpdatedAt - a.lastUpdatedAt
+            : a.lastUpdatedAt - b.lastUpdatedAt
+        ))
       case "status":
-        return setDevices(
-          devices.slice().sort((a, b) => (
-            statusSortValue(isAscending ? b : a) < statusSortValue(isAscending ? a : b)
-              ? -1
-              : 1
-          ))
-        )
+        return devices.slice().sort((a, b) => (
+          statusSortValue(isAscending ? b : a) < statusSortValue(isAscending ? a : b)
+            ? -1
+            : 1
+        ))
       case "version":
-        return setDevices(sortVersions(devices, isAscending))
+        return sortVersions(devices, isAscending)
       default:
         return devices
     }
@@ -167,25 +171,22 @@ function DeviceUpdates({ setMessage, token }) {
 
   return (
     <DataTable
-      data={devices}
+      data={paginate(devices)}
       sortBy={{
         columnId: currentlySelectedColumn,
         ascending: columnSort[currentlySelectedColumn]
       }}
       columns={columns}
-      sort={sortData}
+      sort={(columnId) => setDevices(sortData(columnId))}
       header={<Header>Devices to Update</Header>}
       footer={
         <Pagination
-          current={currentPage}
           total={total}
           size={size}
           sizes={sizes}
+          setSize={setSize}
+          current={currentPage}
           setCurrent={setCurrent}
-          setSize={(pageSize) => {
-            setSizes([...sizes, pageSize])
-            setSize(pageSize)
-          }}
         />
       }
     />

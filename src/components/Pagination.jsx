@@ -35,12 +35,12 @@ function Pagination({ current, total, setCurrent, setSize, size, sizes }) {
           <Icon name="angle left" />
         </Menu.Item>
         <Menu.Item active>
-          Page {current} of {total}
+          Page {current} of {Math.ceil(total / (size || 1))}
         </Menu.Item>
         <Menu.Item
           as="a"
           icon
-          disabled={current === total}
+          disabled={current === Math.ceil(total / (size || 1))}
           onClick={() => setCurrent(current + 1)}
         >
           <Icon name="angle right" />
@@ -48,8 +48,8 @@ function Pagination({ current, total, setCurrent, setSize, size, sizes }) {
         <Menu.Item
           as="a"
           icon
-          disabled={current === total}
-          onClick={() => setCurrent(total)}
+          disabled={current === Math.ceil(total / (size || 1))}
+          onClick={() => setCurrent(Math.ceil(total / (size || 1)))}
         >
           <Icon name="angle double right" />
         </Menu.Item>
