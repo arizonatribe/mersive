@@ -18,7 +18,7 @@ import { decodeJwt } from "../helpers/index.js"
  */
 function WithAuthentication({ token, children, setToken, setMessage }) {
   useEffect(() => {
-    if (token == null) {
+    if (!token) {
       /* Login places the token into local storage (if "remember me" was checkmarked), so auth verification can be bootstrapped that way */
       const accessToken = localStorage.getItem("token")
 
@@ -27,8 +27,6 @@ function WithAuthentication({ token, children, setToken, setMessage }) {
     } else {
       verifyToken(token)
         .then(() => {
-          setToken(token)
-
           /* When the token expires, the user should sign back in */
           setTimeout(() => {
             setToken("")

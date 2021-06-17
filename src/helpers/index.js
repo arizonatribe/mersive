@@ -1,4 +1,8 @@
+import ms from "ms"
 import jwt from "jsonwebtoken"
+import format from "date-fns/format/index.js"
+import zonedTimeToUtc from "date-fns-tz/zonedTimeToUtc/index.js"
+import utcToZonedTime from "date-fns-tz/utcToZonedTime/index.js"
 import Types from "../jsdoc.typedefs.js"
 
 /**
@@ -128,6 +132,85 @@ export function splitVersionIntoParts(val) {
       patch: +val.version.split(".")[2]
     }
     : val
+}
+
+/**
+ * Calculates an array sort value for a Device based on multiple flag values in the device
+ *
+ * @function
+ * @name statusSortValue
+ * @param {Types.Device} device A device object
+ * @returns {number} A numeric sort value
+ */
+export function statusSortValue(device) {
+  return device.inProgress
+    ? 1
+    : device.isCurrent
+      ? 0
+      : -1
+}
+
+/**
+ * Attempts to convert a given value to a Date
+ *
+ * @function
+ * @name toDate
+ * @param {number|string|Date} dt A value which may be a Date or able to be converted to a date
+ * @returns {Date|undefined} Either the successfully converted date or undefined
+ */
+export function toDate(dt) {
+  const d = dt instanceof Date
+    ? dt
+    : typeof dt === "number" && `${dt}`.length === `${Date.now()}`.length
+      ? new Date(dt)
+      : typeof dt === "number" && `${dt * 1000}`.length === `${Date.now()}`.length
+        ? new Date(dt * 1000)
+        : typeof dt === "string" && !Number.isNaN((new Date(dt)).valueOf())
+          ? new Date(dt)
+          : undefined
+
+  if (d) {
+    const localOffset = (new Date().getTimezoneOffset() * ms("1m")) / ms("1h")
+    const timezoneOffset = `${localOffset < 0 ? "+" : "-"}${localOffset < 10 ? "0" : ""}${localOffset}`
+    return zonedTimeToUtc(d, timezoneOffset)
+  }
+
+  return undefined
+}
+
+/**
+ * Gets the current datetime, accounting for the local offset
+ *
+ * @function
+ * @name getCurrentZonedDate
+ * @returns {Date} The current datetime
+ */
+export function getCurrentZonedDate() {
+  return utcToZonedTime(new Date())
+}
+
+/**
+ * Parses a given date and formats it in YYYY/mm/DD format, unless it was within the past day, it will then list the hours, minutes or seconds since now
+ *
+ * @function
+ * @name toRecentTimespanOrYearMonthDay
+ * @param {number|string|Date} dt A date value to parse
+ * @returns {string|undefined} A string value displaying either the recent timespan or the formatted date (in YYYY/mm/DD format)
+ */
+export function toRecentTimespanOrYearMonthDay(dt) {
+  const d = toDate(dt)
+
+  if (d) {
+    const currentDate = getCurrentZonedDate()
+
+    if (ms("1d") > currentDate.valueOf() - d.valueOf()) {
+      return `${ms(currentDate.valueOf() - d.valueOf(), { long: true })} ago`
+    }
+
+    return format(d, "yyyy/mm/dd")
+  }
+
+  return undefined
 }
 
 /**

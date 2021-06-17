@@ -1,6 +1,7 @@
 import createLogger from "pino"
+import Dataloader from "dataloader"
 import createDbClient from "../db/client.js"
-import { decodeJwt } from "../../helpers/index.js"
+import { isEmail, decodeJwt } from "../../helpers/index.js"
 
 /**
  * Creates the dependencies and config values which are shared across GraphQL resolvers and directives
@@ -16,10 +17,31 @@ import { decodeJwt } from "../../helpers/index.js"
 export default async function createContext(config = {}, req = {}) {
   const { level, shouldMockResolvers, shouldPrettyPrint, name } = config
   const logger = createLogger({ level, prettyPrint: shouldPrettyPrint, name })
+  const dbClient = createDbClient(config, logger)
+
   const context = {
     config,
     logger,
-    dbClient: createDbClient(config, logger)
+    dbClient,
+
+    /*
+     * [Dataloader](https://www.npmjs.com/package/dataloader) is a memoization cache spun up for each inbound HTTP request and eliminates "over fetching".
+     * Overfetching in this application would occur when a list of devices is being returned and a user has to be retrieved for that device.
+     * Many devices have the same user, so this ensures that a look-up of a user by a specific email address occurs only once.
+     * For each device that needs that same user the in-memory cache returns the previously resolved user rather than makes the database request a second time.
+     */
+    loaders: {
+      users: new Dataloader(keys => Promise.all(
+        keys.map(email => dbClient.findUserByEmail(email, false))
+      )),
+      devices: new Dataloader(keys => Promise.all(
+        keys.map(emailOrId => (
+          isEmail(emailOrId)
+            ? dbClient.findDevicesByEmail(emailOrId)
+            : dbClient.findDeviceById(emailOrId)
+        ))
+      ))
+    }
   }
 
   const authHeader = req.headers?.Authorization || req.headers?.authorization

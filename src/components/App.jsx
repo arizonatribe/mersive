@@ -1,18 +1,25 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
+
 import { Page, Header, MessageWrapper, Main } from "./Layout"
 import { WithAuthentication } from "./WithAuthentication"
-import { Devices } from "./Devices"
+import { DeviceUpdates } from "./DeviceUpdates"
 
 /**
  * The main component (or entry point) for the React App
  *
  * @function
  * @name App
- * @returns {React.Component} The rendered JSX component
+ * @returns {React.Component} The main component for the React application
  */
 function App() {
   const [token, setToken] = useState("")
   const [message, setMessage] = useState("")
+
+  useEffect(() => {
+    if (message) {
+      setTimeout(() => setMessage(""), 5000)
+    }
+  }, [message])
 
   return (
     <WithAuthentication
@@ -27,7 +34,7 @@ function App() {
           </MessageWrapper>
         </Header>
         <Main>
-          <Devices token={token} setMessage={setMessage} />
+          <DeviceUpdates token={token} setMessage={setMessage} />
         </Main>
       </Page>
     </WithAuthentication>

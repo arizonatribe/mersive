@@ -1,6 +1,7 @@
 /* eslint-disable consistent-return */
 import knex from "knex"
 import {
+  toDate,
   validateJwt,
   isJwtExpired,
   decodeJwt,
@@ -78,7 +79,9 @@ export default function createDbClient(config, logger) {
 
         devicesWithFirmware.forEach(device => {
           const deviceUpdates = devicesWithFirmware.filter(d => d.id === device.id)
-          const [{ finished: lastUpdatedAt }] = deviceUpdates.sort((a, b) => b.finished - a.finished)
+          const [{ finished: lastUpdatedAt }] = deviceUpdates.sort((a, b) => (
+            toDate(b.finished)?.valueOf() - toDate(a.finished)?.valueOf()
+          ))
           const [{ major, minor, patch }] = sortVersions(deviceUpdates)
           const version = `${major}.${minor}.${patch}`
 
@@ -121,7 +124,7 @@ export default function createDbClient(config, logger) {
       }
 
       try {
-        const devicesWithFirmware = await sql.raw(`
+        const devicesByEmail = await sql.raw(`
           SELECT
             devices.id as id,
             devices.name as name,
@@ -138,14 +141,16 @@ export default function createDbClient(config, logger) {
             devices.user_email = '${email}'
         `)
 
-        logger.debug({ devicesWithFirmware })
+        logger.debug({ devicesByEmail })
 
         const devices = {}
         const currentVersion = await dbClient.findLatestVersion()
 
-        devicesWithFirmware.forEach(device => {
-          const deviceUpdates = devicesWithFirmware.filter(d => d.id === device.id)
-          const [{ finished: lastUpdatedAt }] = deviceUpdates.sort((a, b) => b.finished - a.finished)
+        devicesByEmail.forEach(device => {
+          const deviceUpdates = devicesByEmail.filter(d => d.id === device.id)
+          const [{ finished: lastUpdatedAt }] = deviceUpdates.sort((a, b) => (
+            toDate(b.finished)?.valueOf() - toDate(a.finished)?.valueOf()
+          ))
           const [{ major, minor, patch }] = sortVersions(deviceUpdates)
           const version = `${major}.${minor}.${patch}`
 
@@ -179,7 +184,7 @@ export default function createDbClient(config, logger) {
       try {
         const firmwareVersions = await sql.raw(`
           SELECT
-            major
+            major,
             minor,
             patch
           FROM
@@ -218,7 +223,7 @@ export default function createDbClient(config, logger) {
       }
 
       try {
-        const devicesWithFirmware = await sql.raw(`
+        const deviceWithUpdates = await sql.raw(`
           SELECT
             devices.id as id,
             devices.name as name,
@@ -235,23 +240,25 @@ export default function createDbClient(config, logger) {
             devices.id = ${id}
         `)
 
-        logger.debug({ devicesWithFirmware })
+        logger.debug({ deviceWithUpdates })
 
-        if (!devicesWithFirmware || !devicesWithFirmware.length) {
+        if (!deviceWithUpdates || !deviceWithUpdates.length) {
           return null
         }
 
-        const [{ major, minor, patch }] = sortVersions(devicesWithFirmware)
+        const [{ major, minor, patch }] = sortVersions(deviceWithUpdates)
         const version = `${major}.${minor}.${patch}`
         const currentVersion = await dbClient.findLatestVersion()
-        const [{ finished: lastUpdatedAt }] = devicesWithFirmware.sort((a, b) => b.finished - a.finished)
+        const [{ finished: lastUpdatedAt }] = deviceWithUpdates.sort((a, b) => (
+          toDate(b.finished)?.valueOf() - toDate(a.finished)?.valueOf()
+        ))
 
         const device = {
           id,
           version,
           lastUpdatedAt,
-          name: devicesWithFirmware[0].name,
-          inProgress: devicesWithFirmware.some(d => d.finished != null),
+          name: deviceWithUpdates[0].name,
+          inProgress: deviceWithUpdates.some(d => d.finished != null),
           isCurrent: version === currentVersion
         }
 
@@ -270,10 +277,11 @@ export default function createDbClient(config, logger) {
      * @throws {Error} When the email is missing or in an invalid format
      * @name DbClient#findUserByEmail
      * @param {string} email The user's email address
+     * @param {boolean} [includeDevices=true] Whether to include the user's devices
      * @returns {Promise<Types.User>} A promise which resolves with the User matching the email address
      */
-    async findUserByEmail(email) {
-      logger.debug({ email })
+    async findUserByEmail(email, includeDevices = true) {
+      logger.debug({ email, includeDevices })
 
       if (email == null) {
         throw new Error("Missing the email address")
@@ -302,9 +310,11 @@ export default function createDbClient(config, logger) {
           return null
         }
 
-        const devices = await dbClient.findDevicesByEmail(email)
-
-        logger.debug({ devices })
+        let devices
+        if (includeDevices) {
+          devices = await dbClient.findDevicesByEmail(email)
+          logger.debug({ devices })
+        }
 
         const user = {
           email,
@@ -454,7 +464,7 @@ export default function createDbClient(config, logger) {
         ].join(". "))
       }
 
-      const user = await dbClient.findUserByEmail(email)
+      const user = await dbClient.findUserByEmail(email, false)
 
       // TODO: For the sake of this coding exercise, password salting & hashing is ignored (would require database schema changes)
       if (!user) {

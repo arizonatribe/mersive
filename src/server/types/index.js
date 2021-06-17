@@ -32,9 +32,9 @@ export default gql`
 
   type User {
     email: Email!
+    devices: [Device]
     permissions: [Permission]
     canPerformUpdates: Boolean
-    devices: [Device]
     # Whether the user's device subscription has ended
     isSubscriptionExpired: Boolean
   }

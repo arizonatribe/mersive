@@ -1,4 +1,3 @@
-import ms from "ms"
 import PropTypes from "prop-types"
 import React, { useEffect, useState } from "react"
 import { Header, Icon, Loader, Popup } from "semantic-ui-react"
@@ -7,7 +6,7 @@ import Types from "../jsdoc.typedefs.js"
 import { DataTable } from "./DataTable"
 import { Pagination } from "./Pagination"
 import { fetchDevices } from "./api/index.js"
-import { sortVersions } from "../helpers/index.js"
+import { toRecentTimespanOrYearMonthDay, statusSortValue, sortVersions } from "../helpers/index.js"
 
 const UpToDateIcon = () => {
   const icon = <Icon name="checkmark" color="green" />
@@ -24,8 +23,26 @@ const UnauthorizedUserIcon = () => {
   return <Popup content="Not Authorized" trigger={icon} />
 }
 
+/**
+ * SemanticUI React table column configuration settings
+ *
+ * @typedef {Object<string, string|boolean|function>} ColumnConfigurationSettings
+ * @property {string} id The column's unique identifier
+ * @property {string} [header] The column label
+ * @property {boolean} [collapsing] A cell can be collapsing so that it only uses as much space as required.
+ * @property {function} [render] A function which provides the content. In its simplest form just selects the field from the source object
+ */
+
+/**
+ * The configuration settings for the device updates data
+ *
+ * @name columns
+ * @type {Array<ColumnConfigurationSettings>}
+ * @constant
+ * @default
+ */
 const columns = [{
-  id: "updated",
+  id: "status",
   collapsing: true,
   render: (row) => (
     row.inProgress
@@ -56,13 +73,7 @@ const columns = [{
   id: "updated",
   header: "Last Updated",
   render(row) {
-    if (row.lastUpdatedAt != null) {
-      if (ms("1d") > (Date.now() - row.lastUpdatedAt)) {
-        return `${ms(Date.now() - row.lastUpdatedAt, { long: true })} ago`
-      }
-      return (new Date(row.lastUpdatedAt)).toLocaleString().split(/\s/).replace(/,/g, "")
-    }
-    return row.lastUpdatedAt
+    return toRecentTimespanOrYearMonthDay(row.lastUpdatedAt)
   }
 }]
 
@@ -70,13 +81,12 @@ const columns = [{
  * The list of devices and their corresponding users
  *
  * @function
- * @name Devices
+ * @name DeviceUpdates
  * @param {string} [token] The current access token for the user's authenticated session
  * @param {function} props.setMessage A callback function to place messages into the page which are generated from activity in this component
- * @param {function} props.setToken A callback function which updates the current access token
  * @returns {React.Component} The rendered JSX component
  */
-function Devices({ setMessage, setToken, token }) {
+function DeviceUpdates({ setMessage, token }) {
   const [currentPage, setCurrent] = useState(1)
   const [total, setTotal] = useState(0)
   const [size, setSize] = useState(10)
@@ -107,17 +117,35 @@ function Devices({ setMessage, setToken, token }) {
     switch (columnId) {
       case "name":
         return setDevices(
-          devices.sort((a, b) => (isAscending ? b.name - a.name : a.name - b.name))
+          devices.slice().sort((a, b) => (
+            b.name < a.name
+              ? (isAscending ? 1 : -1)
+              : (isAscending ? -1 : 1)
+          ))
         )
       case "user":
         return setDevices(
-          devices.sort((a, b) => (
-            isAscending ? b.user.email - a.user.email : a.user.email - b.user.email
+          devices.slice().sort((a, b) => (
+            b.user?.email < a.user?.email
+              ? (isAscending ? 1 : -1)
+              : (isAscending ? -1 : 1)
           ))
         )
       case "updated":
         return setDevices(
-          devices.sort((a, b) => (isAscending ? b.lastUpdatedAt - a.lastUpdatedAt : a.lastUpdatedAt - b.lastUpdatedAt))
+          devices.slice().sort((a, b) => (
+            isAscending
+              ? b.lastUpdatedAt - a.lastUpdatedAt
+              : a.lastUpdatedAt - b.lastUpdatedAt
+          ))
+        )
+      case "status":
+        return setDevices(
+          devices.slice().sort((a, b) => (
+            statusSortValue(isAscending ? b : a) < statusSortValue(isAscending ? a : b)
+              ? -1
+              : 1
+          ))
         )
       case "version":
         return setDevices(sortVersions(devices, isAscending))
@@ -135,7 +163,7 @@ function Devices({ setMessage, setToken, token }) {
       .catch(err => {
         setMessage(err.message)
       })
-  }, [setMessage, setToken, token])
+  }, [setMessage, token])
 
   return (
     <DataTable
@@ -164,10 +192,9 @@ function Devices({ setMessage, setToken, token }) {
   )
 }
 
-Devices.propTypes = {
+DeviceUpdates.propTypes = {
   token: PropTypes.string,
-  setToken: PropTypes.func.isRequired,
   setMessage: PropTypes.func.isRequired
 }
 
-export { Devices }
+export { DeviceUpdates }

@@ -105,7 +105,7 @@ DataTable.propTypes = {
     render: PropTypes.func
   })),
   data: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired
+    id: PropTypes.number.isRequired
   })),
   sort: PropTypes.func.isRequired,
   sortBy: PropTypes.shape({
