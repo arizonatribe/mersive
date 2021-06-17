@@ -94,7 +94,7 @@ export async function verifyToken(token) {
 }
 
 /**
- * An async function which retrieves a list of devices
+ * An async function which retrieves a list of devices for users with active subscriptions
  *
  * @function
  * @name fetchDevices
@@ -162,7 +162,9 @@ export async function fetchDevices(token) {
     throw err
   }
 
-  return result?.data?.devices || result?.data?.getDevicesByEmail || []
+  return (
+    result?.data?.devices || result?.data?.getDevicesByEmail || []
+  ).filter(device => !device?.user?.isSubscriptionExpired)
 }
 
 /**

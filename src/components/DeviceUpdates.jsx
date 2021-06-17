@@ -58,7 +58,7 @@ const columns = [{
     <>
       {row.user?.email}
       &nbsp;
-      {row.user?.canPerformUpdates && <UnauthorizedUserIcon />}
+      {!row.user?.canPerformUpdates && <UnauthorizedUserIcon />}
     </>
   )
 }, {
