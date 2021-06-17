@@ -1,4 +1,7 @@
 export default {
+  isSubscriptionExpired({ isSubscriptionExpired }) {
+    return /^(1|true)$/i.test(isSubscriptionExpired)
+  },
   canPerformUpdates(user) {
     return Boolean(
       (user && user.isAdmin)

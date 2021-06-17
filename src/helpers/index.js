@@ -6,6 +6,88 @@ import utcToZonedTime from "date-fns-tz/utcToZonedTime/index.js"
 import Types from "../jsdoc.typedefs.js"
 
 /**
+ * HTTP response error codes
+ * @name ErrorCodes
+ * @type {Object<number, string>}
+ * @constant
+ * @default
+ */
+export const ErrorCodes = {
+  400: "BAD_REQUEST",
+  401: "UNAUTHORIZED",
+  402: "PAYMENT_REQUIRED",
+  403: "FORBIDDEN",
+  404: "NOT_FOUND",
+  405: "METHOD_NOT_ALLOWED",
+  406: "NOT_ACCEPTABLE",
+  407: "PROXY_AUTHENTICATION_REQUIRED",
+  408: "REQUEST_TIMEOUT",
+  409: "CONFLICT",
+  410: "GONE",
+  411: "LENGTH_REQUIRED",
+  412: "PRECONDITION_FAILED",
+  413: "PAYLOAD_TOO_LARGE",
+  414: "URI_TOO_LONG",
+  415: "UNSUPPORTED_MEDIA_TYPE",
+  416: "REQUESTED_RANGE_NOT_SATISFIABLE",
+  417: "EXPECTATION_FAILED",
+  418: "I'M_A_TEAPOT",
+  421: "MISDIRECTED_REQUEST",
+  422: "UNPROCESSABLE_ENTITY",
+  423: "LOCKED",
+  424: "FAILED_DEPENDENCY",
+  425: "TOO_EARLY",
+  426: "UPGRADE_REQUIRED",
+  428: "PRECONDITION_REQUIRED",
+  429: "TOO_MANY_REQUESTS",
+  431: "REQUEST_HEADER_FIELDS_TOO_LARGE",
+  451: "UNAVAILABLE_FOR_LEGAL_REASONS",
+  500: "INTERNAL_SERVER_ERROR",
+  501: "NOT_IMPLEMENTED",
+  502: "BAD_GATEWAY",
+  503: "SERVICE_UNAVAILABLE",
+  504: "GATEWAY_TIMEOUT",
+  505: "HTTP_VERSION_NOT_SUPPORTED",
+  506: "VARIANT_ALSO_NEGOTIATES",
+  507: "INSUFFICIENT_STORAGE",
+  508: "LOOP_DETECTED",
+  510: "NOT_EXTENDED",
+  511: "NETWORK_AUTHENTICATION_REQUIRED"
+}
+
+/**
+ * Checks if a given error code is a 400-level error
+ *
+ * @function
+ * @name is400LevelError
+ * @param {number|string} code The http status code or text to evaluate
+ * @returns {boolean} Whether or not the error code is a 400-level error
+ */
+export function is400LevelError(code) {
+  return typeof code === "number"
+    ? code >= 400
+    : Object.entries(ErrorCodes)
+      .filter(([key]) => +key >= 400)
+      .some(([_, statusText]) => statusText === code)
+}
+
+/**
+ * Checks if a given error code is a 500-level error
+ *
+ * @function
+ * @name is500LevelError
+ * @param {number|string} code The http status code or text to evaluate
+ * @returns {boolean} Whether or not the error code is a 500-level error
+ */
+export function is500LevelError(code) {
+  return typeof code === "number"
+    ? code >= 500
+    : Object.entries(ErrorCodes)
+      .filter(([key]) => +key >= 500)
+      .some(([_, statusText]) => statusText === code)
+}
+
+/**
  * Creates a JWT
  *
  * @function
@@ -156,9 +238,10 @@ export function statusSortValue(device) {
  * @function
  * @name toDate
  * @param {number|string|Date} dt A value which may be a Date or able to be converted to a date
+ * @param {boolean} [convertToUTC] Whether or not to convert the date to UTC
  * @returns {Date|undefined} Either the successfully converted date or undefined
  */
-export function toDate(dt) {
+export function toDate(dt, convertToUTC = true) {
   const d = dt instanceof Date
     ? dt
     : typeof dt === "number" && `${dt}`.length === `${Date.now()}`.length
@@ -169,17 +252,17 @@ export function toDate(dt) {
           ? new Date(dt)
           : undefined
 
-  if (d) {
+  if (d && convertToUTC) {
     const localOffset = (new Date().getTimezoneOffset() * ms("1m")) / ms("1h")
     const timezoneOffset = `${localOffset < 0 ? "+" : "-"}${localOffset < 10 ? "0" : ""}${localOffset}`
     return zonedTimeToUtc(d, timezoneOffset)
   }
 
-  return undefined
+  return d
 }
 
 /**
- * Gets the current datetime, accounting for the local offset
+ * Gets the current datetime
  *
  * @function
  * @name getCurrentZonedDate
@@ -190,24 +273,38 @@ export function getCurrentZonedDate() {
 }
 
 /**
+ * Gets the current UTC datetime, accounting for the local offset
+ *
+ * @function
+ * @name getCurrentUTC
+ * @returns {Date} The current UTC datetime
+ */
+export function getCurrentUTC() {
+  const localOffset = (new Date().getTimezoneOffset() * ms("1m")) / ms("1h")
+  const timezoneOffset = `${localOffset < 0 ? "+" : "-"}${localOffset < 10 ? "0" : ""}${localOffset}`
+  return zonedTimeToUtc(new Date(), timezoneOffset)
+}
+
+/**
  * Parses a given date and formats it in YYYY/mm/DD format, unless it was within the past day, it will then list the hours, minutes or seconds since now
  *
  * @function
  * @name toRecentTimespanOrYearMonthDay
  * @param {number|string|Date} dt A date value to parse
+ * @param {boolean} [convertToUTC] Whether or not to convert the date to UTC
  * @returns {string|undefined} A string value displaying either the recent timespan or the formatted date (in YYYY/mm/DD format)
  */
-export function toRecentTimespanOrYearMonthDay(dt) {
-  const d = toDate(dt)
+export function toRecentTimespanOrYearMonthDay(dt, convertToUTC) {
+  const d = toDate(dt, convertToUTC)
 
   if (d) {
-    const currentDate = getCurrentZonedDate()
+    const utc = getCurrentUTC()
 
-    if (ms("1d") > currentDate.valueOf() - d.valueOf()) {
-      return `${ms(currentDate.valueOf() - d.valueOf(), { long: true })} ago`
+    if (ms("1d") > utc.valueOf() - d.valueOf()) {
+      return `${ms(utc.valueOf() - d.valueOf(), { long: true })} ago`
     }
 
-    return format(d, "yyyy/mm/dd")
+    return format(d, "yyyy/MM/dd")
   }
 
   return undefined

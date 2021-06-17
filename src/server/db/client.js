@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
 import knex from "knex"
+import { ApolloError, UserInputError } from "apollo-server-express"
 import {
-  toDate,
   validateJwt,
   isJwtExpired,
   decodeJwt,
@@ -28,10 +28,10 @@ export default function createDbClient(config, logger) {
   logger.debug({ config })
 
   if (!clientName) {
-    throw new Error("Missing DB client name (ie, 'pg', 'sqlite3', etc.)")
+    throw new UserInputError("Missing DB client name (ie, 'pg', 'sqlite3', etc.)")
   }
   if (!connection || (!connection.filename && !connection.user && !connection.password)) {
-    throw new Error("Invalid DB connection configuration details")
+    throw new UserInputError("Invalid DB connection configuration details")
   }
 
   const sql = knex({
@@ -65,7 +65,7 @@ export default function createDbClient(config, logger) {
             firmware.major as major,
             firmware.minor as minor,
             firmware.patch as patch,
-            updates.finished as finished
+            strftime('%s', updates.finished) as finished
           FROM
             devices
           LEFT JOIN firmware_versions as firmware ON devices.firmware_version_id = firmware.id
@@ -79,9 +79,7 @@ export default function createDbClient(config, logger) {
 
         devicesWithFirmware.forEach(device => {
           const deviceUpdates = devicesWithFirmware.filter(d => d.id === device.id)
-          const [{ finished: lastUpdatedAt }] = deviceUpdates.sort((a, b) => (
-            toDate(b.finished)?.valueOf() - toDate(a.finished)?.valueOf()
-          ))
+          const [{ finished: lastUpdatedAt }] = deviceUpdates.sort((a, b) => (b.finished - a.finished))
           const [{ major, minor, patch }] = sortVersions(deviceUpdates)
           const version = `${major}.${minor}.${patch}`
 
@@ -91,7 +89,6 @@ export default function createDbClient(config, logger) {
             email: device.email,
             lastUpdatedAt,
             name: device.name,
-            email: device.email,
             inProgress: device.finished != null,
             isCurrent: version === currentVersion
           }
@@ -109,7 +106,7 @@ export default function createDbClient(config, logger) {
      * Fetches the current list of all devices for a given user
      *
      * @function
-     * @throws {Error} When the email is missing or in an invalid format
+     * @throws {UserInputError} When the email is missing or in an invalid format
      * @name DbClient#findDevicesByEmail
      * @param {string} email The user email by which to look up devices
      * @returns {Promise<Array<Types.Device>>} A promise which resolves with a list of Devices for the User
@@ -118,10 +115,10 @@ export default function createDbClient(config, logger) {
       logger.debug({ email })
 
       if (email == null) {
-        throw new Error("Missing the email address")
+        throw new UserInputError("Missing the email address")
       }
       if (!isEmail(email)) {
-        throw new Error(`Not a valid email address: ${email}`)
+        throw new UserInputError(`Not a valid email address: ${email}`, { email })
       }
 
       try {
@@ -133,7 +130,7 @@ export default function createDbClient(config, logger) {
             firmware.major as major,
             firmware.minor as minor,
             firmware.patch as patch,
-            updates.finished as finished
+            strftime('%s', updates.finished) as finished
           FROM
             devices
           LEFT JOIN firmware_versions as firmware ON devices.firmware_version_id = firmware.id
@@ -149,9 +146,7 @@ export default function createDbClient(config, logger) {
 
         devicesByEmail.forEach(device => {
           const deviceUpdates = devicesByEmail.filter(d => d.id === device.id)
-          const [{ finished: lastUpdatedAt }] = deviceUpdates.sort((a, b) => (
-            toDate(b.finished)?.valueOf() - toDate(a.finished)?.valueOf()
-          ))
+          const [{ finished: lastUpdatedAt }] = deviceUpdates.sort((a, b) => (b.finished - a.finished))
           const [{ major, minor, patch }] = sortVersions(deviceUpdates)
           const version = `${major}.${minor}.${patch}`
 
@@ -178,7 +173,6 @@ export default function createDbClient(config, logger) {
      * Fetches the latest firmware version
      *
      * @function
-     * @throws {Error} When the email is missing or in an invalid format
      * @name DbClient#findLatestVersion
      * @returns {Promise<string>} A promise which resolves with the latest firmware version number
      */
@@ -209,7 +203,7 @@ export default function createDbClient(config, logger) {
      * Fetches a device by its unique ID
      *
      * @function
-     * @throws {Error} When the device ID is missing or is not a valid number
+     * @throws {UserInputError} When the device ID is missing or is not a valid number
      * @name DbClient#findDeviceById
      * @param {number} id The device's unique ID
      * @returns {Promise<Types.Device>} A promise which resolves with Device matching the ID
@@ -218,10 +212,13 @@ export default function createDbClient(config, logger) {
       logger.debug({ id })
 
       if (id == null) {
-        throw new Error("Missing the device ID")
+        throw new UserInputError("Missing the device ID")
       }
       if (typeof id !== "number" || id <= 0) {
-        throw new Error(`A device ID must be a positive integer value, but instead received: ${id}`)
+        throw new UserInputError(
+          `A device ID must be a positive integer value, but instead received: ${id}`,
+          { id }
+        )
       }
 
       try {
@@ -233,7 +230,7 @@ export default function createDbClient(config, logger) {
             firmware.major as major
             firmware.minor as minor,
             firmware.patch as patch,
-            updates.finished as finished
+            strftime('%s', updates.finished) as finished
           FROM
             devices
           LEFT JOIN firmware_versions as firmware ON devices.firmware_version_id = firmware.id
@@ -251,9 +248,7 @@ export default function createDbClient(config, logger) {
         const [{ major, minor, patch }] = sortVersions(deviceWithUpdates)
         const version = `${major}.${minor}.${patch}`
         const currentVersion = await dbClient.findLatestVersion()
-        const [{ finished: lastUpdatedAt }] = deviceWithUpdates.sort((a, b) => (
-          toDate(b.finished)?.valueOf() - toDate(a.finished)?.valueOf()
-        ))
+        const [{ finished: lastUpdatedAt }] = deviceWithUpdates.sort((a, b) => (b.finished - a.finished))
 
         const device = {
           id,
@@ -277,7 +272,7 @@ export default function createDbClient(config, logger) {
      * Fetches a user by their unique email
      *
      * @function
-     * @throws {Error} When the email is missing or in an invalid format
+     * @throws {UserInputError} When the email is missing or in an invalid format
      * @name DbClient#findUserByEmail
      * @param {string} email The user's email address
      * @param {boolean} [includeDevices=true] Whether to include the user's devices
@@ -287,10 +282,10 @@ export default function createDbClient(config, logger) {
       logger.debug({ email, includeDevices })
 
       if (email == null) {
-        throw new Error("Missing the email address")
+        throw new UserInputError("Missing the email address")
       }
       if (!isEmail(email)) {
-        throw new Error(`Not a valid email address: ${email}`)
+        throw new UserInputError(`Not a valid email address: ${email}`, { email })
       }
 
       try {
@@ -445,9 +440,9 @@ export default function createDbClient(config, logger) {
      * Authenticates a user by their credentials
      *
      * @function
-     * @throws {Error} When the email is missing or in an invalid format
-     * @throws {Error} When the password is missing or in an invalid format
-     * @throws {Error} When the credentials are invalid (or the user doesn't exist)
+     * @throws {UserInputError} When the email is missing or in an invalid format
+     * @throws {UserInputError} When the password is missing or in an invalid format
+     * @throws {ApolloError} (401) When the credentials are invalid (or the user doesn't exist)
      * @name DbClient#authenticateUser
      * @param {string} email The user's email address
      * @param {string} password The user's password
@@ -457,10 +452,10 @@ export default function createDbClient(config, logger) {
       logger.debug({ email, password: password != null ? "[REDACTED]" : password })
 
       if (password == null) {
-        throw new Error("Missing the password")
+        throw new UserInputError("Missing the password")
       }
       if (!isPassword(password)) {
-        throw new Error([
+        throw new UserInputError([
           "Password is not in a valid format",
           "Should be a mix of alpha-numeric (mixed case) and at least one symbol",
           "Should be at least 8 characters total as well"
@@ -471,7 +466,7 @@ export default function createDbClient(config, logger) {
 
       // TODO: For the sake of this coding exercise, password salting & hashing is ignored (would require database schema changes)
       if (!user) {
-        throw new Error("Invalid login credentials", 401, { email })
+        throw new ApolloError("Invalid login credentials", 401, { email })
       }
 
       return createJwt({
@@ -493,19 +488,19 @@ export default function createDbClient(config, logger) {
      *
      * @function
      * @name DbClient#verifyToken
-     * @throws {Error} When the acces token is invalid, missing, or wasn't issued by this server
+     * @throws {UserInputError} When the acces token is invalid, missing, or wasn't issued by this server
      * @param {string} token The access token
      * @returns {Promise<Types.DecodedJwt|undefined>} A decoded, validated token
      */
     async verifyToken(token) {
       if (token == null) {
-        throw new Error("Token is missing")
+        throw new UserInputError("Token is missing")
       }
       if (isJwtExpired(token, config.secret)) {
-        throw new Error("Token has expired")
+        throw new ApolloError("Token has expired", 401)
       }
       if (!validateJwt(token, config.secret)) {
-        throw new Error("Invalid access token")
+        throw new ApolloError("Invalid access token", 401)
       }
 
       const decoded = decodeJwt(token)

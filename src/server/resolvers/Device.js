@@ -1,12 +1,18 @@
-import { toDate} from "../../helpers/index.js"
-
 export default {
   lastUpdatedAt({ lastUpdatedAt }) {
-    const dt = toDate(lastUpdatedAt)
-    if (dt) {
-      return dt.valueOf()
-    }
-    return dt
+    const toMs = val => (
+      `${Date.now()}`.length === `${val}`.length
+        ? val
+        : `${Date.now()}`.length === `${val * 1000}`.length
+          ? val * 1000
+          : undefined
+    )
+
+    return (typeof lastUpdatedAt === "number")
+      ? toMs(lastUpdatedAt)
+      : !Number.isNaN(+lastUpdatedAt)
+        ? toMs(+lastUpdatedAt)
+        : null
   },
   async user({ email }, _, { dbClient }) {
     if (email) {

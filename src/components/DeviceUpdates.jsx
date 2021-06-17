@@ -73,7 +73,7 @@ const columns = [{
   id: "updated",
   header: "Last Updated",
   render(row) {
-    return toRecentTimespanOrYearMonthDay(row.lastUpdatedAt)
+    return toRecentTimespanOrYearMonthDay(row.lastUpdatedAt, false)
   }
 }]
 

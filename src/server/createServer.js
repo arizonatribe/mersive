@@ -5,6 +5,7 @@ import typeDefs from "./types/index.js"
 import createContext from "./context/index.js"
 import * as resolvers from "./resolvers/index.js"
 import * as schemaDirectives from "./directives/index.js"
+import { willSendResponse } from "./context/willSendResponse.js"
 
 /**
  * Creates an instance of apollo server
@@ -16,6 +17,8 @@ import * as schemaDirectives from "./directives/index.js"
  */
 export default function createApolloServer(config = {}) {
   return new ApolloServer({
+    plugins: [{ requestDidStart: () => ({ willSendResponse }) }],
+
     ...(config.shouldMockResolvers && { mock }),
 
     /*
