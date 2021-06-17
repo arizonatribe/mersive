@@ -4,6 +4,7 @@ import styled, { withTheme } from "styled-components"
 
 import { SpinnerButton } from "./SpinnerButton"
 import { ClearableError } from "./ErrorMessage"
+import { Logo } from "./Logo"
 import { loginUser } from "./api/index.js"
 
 const Wrapper = styled.div`
@@ -20,7 +21,16 @@ const Wrapper = styled.div`
   width: 100%;
 `
 
+const FormField = styled.input`
+  border-radius: 2px;
+  border: 1px solid #ccc;
+  padding: 12px;
+`
+
 export const StyledLoginForm = styled.form`
+  font-family: ${props => props.theme.font.family};
+  font-size: 18px;
+
   & > * {
     margin: 5px;
     &:focus {
@@ -40,8 +50,13 @@ export const StyledLoginForm = styled.form`
     margin-right: 10px;
   }
 
+  & label {
+    color: white;
+  }
+
   @supports not (display: grid) {
     .loginHeader,
+    .logo,
     .email,
     .rememberMe,
     .loginButton {
@@ -54,23 +69,24 @@ export const StyledLoginForm = styled.form`
     display: grid;
 
     @media ${p => p.theme.breakpoints.phone || "screen and (max-width: 599px)"} {
-      grid-template-columns: 10px 1fr 10px;
-    }
-
-    @media ${p => p.theme.breakpoints.tablet || "screen and (min-width: 600px)"} {
       grid-template-columns: 50px 1fr 50px;
     }
 
+    @media ${p => p.theme.breakpoints.tablet || "screen and (min-width: 600px)"} {
+      grid-template-columns: 200px 1fr 200px;
+    }
+
     @media ${p => p.theme.breakpoints.tabletLandscape || "screen and (min-width: 900px)"} {
-      grid-template-columns: 150px 1fr 150px;
+      grid-template-columns: 350px 1fr 350px;
     }
 
     @media ${p => p.theme.breakpoints.desktop || "screen and (min-width: 1200px)"} {
-      grid-template-columns: 500px 1fr 500px;
+      grid-template-columns: 650px 1fr 650px;
     }
 
     grid-template-areas:
       '. header .'
+      '. logo .'
       '. email .'
       '. password .'
       '. remember-me .'
@@ -148,7 +164,8 @@ function LoginForm({ setToken }) {
             clearError={() => setAuthErrorMessage("")}
           />
         </header>
-        <input
+        <Logo />
+        <FormField
           id="LoginForm-email"
           className="email"
           placeholder="email"
@@ -157,7 +174,7 @@ function LoginForm({ setToken }) {
           value={email}
           onChange={e => setEmail(e.target.value)}
         />
-        <input
+        <FormField
           id="LoginForm-password"
           className="password"
           placeholder="password"
@@ -167,7 +184,7 @@ function LoginForm({ setToken }) {
           onChange={e => setPassword(e.target.value)}
         />
         <label className="rememberMe" htmlFor="LoginForm-rememberMe">
-          <input
+          <FormField
             id="LoginForm-rememberMe"
             label="Remember me"
             type="checkbox"
@@ -179,7 +196,7 @@ function LoginForm({ setToken }) {
           Remember me
         </label>
         <SpinnerButton inProgress={inProgress} className="loginButton" type="submit">
-          Login
+          Log in
         </SpinnerButton>
       </StyledLoginForm>
     </Wrapper>

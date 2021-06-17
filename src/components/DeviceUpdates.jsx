@@ -45,10 +45,10 @@ const columns = [{
   id: "status",
   collapsing: true,
   render: (row) => (
-    row.inProgress
-      ? <UpdateInProgressIcon />
-      : row.isCurrent
-        ? <UpToDateIcon />
+    row.isCurrent
+      ? <UpToDateIcon />
+      : row.inProgress
+        ? <UpdateInProgressIcon />
         : null
   )
 }, {
@@ -178,7 +178,7 @@ function DeviceUpdates({ setMessage, token }) {
       }}
       columns={columns}
       sort={(columnId) => setDevices(sortData(columnId))}
-      header={<Header>Devices to Update</Header>}
+      header={<Header textAlign="center">Devices to Update</Header>}
       footer={
         <Pagination
           total={total}

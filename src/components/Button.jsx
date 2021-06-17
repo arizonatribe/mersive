@@ -4,7 +4,7 @@ import styled from "styled-components"
 import { PropTypesTheme } from "./theme.js"
 
 const StyledButton = styled.button`
-  padding: 1em;
+  padding: 10px 12px;
   display: block;
   text-align: center;
   text-decoration: none;
@@ -13,9 +13,12 @@ const StyledButton = styled.button`
   color: ${p => p.theme?.colors?.textColor};
   background-color: ${p => p.theme?.colors?.primary};
   cursor: ${p => (p.disabled ? "not-allowed" : "pointer")};
+  font-size: 16px;
+  font-weight: 700;
+  font-family: ${props => props.theme.font.family};
 
   border: none;
-  border-radius: 3px;
+  border-radius: 2px;
   &:focus {
     outline: none;
   }

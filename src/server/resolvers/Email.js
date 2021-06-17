@@ -7,7 +7,7 @@ import { isEmail } from "../../helpers/index.js"
  * @class
  * @name EmailType
  */
-export const Email = new GraphQLScalarType({
+export default new GraphQLScalarType({
   name: "Email",
 
   description: "Ensures a value is in the proper format for an email address",

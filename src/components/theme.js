@@ -1,6 +1,13 @@
 import PropTypes from "prop-types"
 
 /**
+ * The themed font settings
+ * @typedef {Object<string, string>} ThemeFonts
+ * @property {string} fontFamily The font type name(s)
+ * @property {string|number} size The default font size
+ */
+
+/**
  * The themed color values
  * @typedef {Object<string, string>} ThemeColors
  * @property {string} textColor The main text color value
@@ -23,6 +30,7 @@ import PropTypes from "prop-types"
  * The app's theme, provided for each component
  *
  * @typedef {Object<string, ThemeColors>} Theme
+ * @property {ThemeFonts} font The font settings
  * @property {ThemeColors} colors The set of themed color values for the app
  * @property {ThemeBreakpoints} breakpoints Responsive breakpoint values
  */
@@ -37,11 +45,18 @@ export const PropTypesTheme = PropTypes.shape({
 })
 
 export default {
+  font: {
+    size: "14px",
+    family: "Lato, Helvetica"
+  },
   colors: {
     textColor: "white",
-    backgroundColor: "#282c34",
-    primary: "#61dafb",
-    secondary: "#61dafb"
+    lightBlue: "#68c4ee",
+    lightRed: "#eb3468",
+    backgroundColor: "#334151",
+    backgroundColorSecondary: "#0f152e",
+    primary: "#66cd32",
+    secondary: "#f8991e"
   },
   breakpoints: {
     phone: "screen and (max-width: 599px)",

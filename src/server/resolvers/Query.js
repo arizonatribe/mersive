@@ -1,7 +1,7 @@
 import { ApolloError } from "apollo-server-express"
 import Types from "../../jsdoc.typedefs.js"
 
-export const Query = {
+export default {
   /**
    * Performs a look-up of the latest operating system firmware published to-date
    *

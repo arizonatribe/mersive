@@ -7,7 +7,7 @@ import { isJwtExpired, decodeJwt } from "../../helpers/index.js"
  * @class
  * @name JwtType
  */
-export const Jwt = new GraphQLScalarType({
+export default new GraphQLScalarType({
   name: "Jwt",
 
   description: "Ensures a value is in the proper format to be a JWT access token",

@@ -1,4 +1,4 @@
-export const DecodedJwt = {
+export default {
   iat({ iat }) {
     return iat ? iat * 1000 : iat
   },

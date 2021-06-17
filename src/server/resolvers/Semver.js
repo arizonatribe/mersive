@@ -7,7 +7,7 @@ import { isSemver } from "../../helpers/index.js"
  * @class
  * @name SemverType
  */
-export const Semver = new GraphQLScalarType({
+export default new GraphQLScalarType({
   name: "Semver",
 
   description: "Ensures a value is in the proper format for semantic version numbers",

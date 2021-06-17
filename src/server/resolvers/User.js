@@ -1,4 +1,4 @@
-export const User = {
+export default {
   canPerformUpdates(user) {
     return Boolean(
       (user && user.isAdmin)

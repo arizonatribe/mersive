@@ -9,7 +9,7 @@ import { SchemaDirectiveVisitor } from "graphql-tools"
  * @class
  * @name isAdmin
  */
-export class isAdmin extends SchemaDirectiveVisitor {
+export default class isAdmin extends SchemaDirectiveVisitor {
   /**
    * Apollo's pattern for defining directives is to create methods which correspond to the QUERY | FIELD | FIELD_DEFINITION (or other entities you can decorate a directive with).
    * You can then make a resolver be called conditionally based on some custom criteria.

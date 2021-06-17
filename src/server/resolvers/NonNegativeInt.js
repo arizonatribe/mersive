@@ -6,7 +6,7 @@ import { GraphQLScalarType, GraphQLError, Kind } from "graphql"
  * @class
  * @name NonNegativeIntType
  */
-export const NonNegativeInt = new GraphQLScalarType({
+export default new GraphQLScalarType({
   name: "NonNegativeInt",
 
   description: "Ensures a value is in a non-negative integer",

@@ -6,19 +6,6 @@ const host = process.env.HOST || "localhost"
 const url = `http://${host}:${port}/graphql`
 
 /**
- * Whether or not an API result has GraphQL errors
- *
- * @function
- * @name hasGraphqlError
- * @param {Object<string, any>} result The API result
- * @param {Array<Types.GraphQLError>} [result.errors] The location for GraphQL errors (according to the GQL spec) where errors and warnings are stored (either in successful or unsuccessful responses)
- * @returns {boolean} Whether or not there are GQL errors
- */
-function hasGraphqlError(result) {
-  return (result?.errors || []).some(e => e.extensions?.code >= 400)
-}
-
-/**
  * Parses a list (potentially) multiple GraphQL errors into a single error message
  *
  * @function
@@ -31,7 +18,7 @@ function hasGraphqlError(result) {
  * @returns {Error|undefined} A single error message (from the list of multiple GraphQL errors) which can then be thrown
  */
 function parseError(result, response) {
-  return hasGraphqlError(result)
+  return result?.errors
     ? new Error(result.errors.map(e => e.message).join(". "))
     : response?.status >= 400
       ? new Error(response.statusText)

@@ -1,3 +1,3 @@
-export { isAuthenticated } from "./isAuthenticated.js"
-export { isDeviceUser } from "./isDeviceUser.js"
-export { isAdmin } from "./isAdmin.js"
+export { default as isAuthenticated } from "./isAuthenticated.js"
+export { default as isDeviceUser } from "./isDeviceUser.js"
+export { default as isAdmin } from "./isAdmin.js"

@@ -7,7 +7,7 @@ import { isPassword } from "../../helpers/index.js"
  * @class
  * @name PasswordType
  */
-export const Password = new GraphQLScalarType({
+export default new GraphQLScalarType({
   name: "Password",
 
   description: "Ensures a value is in the proper format for a password",

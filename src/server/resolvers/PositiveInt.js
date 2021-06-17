@@ -6,7 +6,7 @@ import { GraphQLScalarType, GraphQLError, Kind } from "graphql"
  * @class
  * @name PositiveIntType
  */
-export const PositiveInt = new GraphQLScalarType({
+export default new GraphQLScalarType({
   name: "PositiveInt",
 
   description: "Ensures a value is in a positive integer",

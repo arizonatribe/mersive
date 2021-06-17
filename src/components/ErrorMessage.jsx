@@ -4,8 +4,8 @@ import styled, { withTheme } from "styled-components"
 import { PropTypesTheme } from "./theme.js"
 
 const ErrorMessage = styled.div`
-  background: ${p => p.theme.colors.backgroundColor};
-  color: ${p => (p.theme.colors.red || "red")};
+  background: ${p => p.theme.colors.secondary};
+  color: white;
   font-size: 12px;
   font-family: ${p => p.theme.fontFamily || "Helvetica"};
   text-align: center;

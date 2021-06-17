@@ -3,8 +3,8 @@ import { ApolloServer } from "apollo-server-express"
 import mock from "./db/mock.js"
 import typeDefs from "./types/index.js"
 import createContext from "./context/index.js"
-import * as exportedResolvers from "./resolvers/index.js"
-import * as exportedDirectives from "./directives/index.js"
+import * as resolvers from "./resolvers/index.js"
+import * as schemaDirectives from "./directives/index.js"
 
 /**
  * Creates an instance of apollo server
@@ -28,9 +28,7 @@ export default function createApolloServer(config = {}) {
     },
 
     typeDefs,
-    // TODO: Bring in the @graphql-tools file-loader, so that resolver exports
-    // isn't such a manual process or would require ommitting the module prototype here (via object destructuring)
-    resolvers: { ...exportedResolvers },
-    schemaDirectives: { ...exportedDirectives }
+    resolvers: { ...resolvers },
+    schemaDirectives: { ...schemaDirectives }
   })
 }

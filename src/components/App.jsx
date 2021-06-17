@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react"
 import { Page, Header, MessageWrapper, Main } from "./Layout"
 import { WithAuthentication } from "./WithAuthentication"
 import { DeviceUpdates } from "./DeviceUpdates"
+import { Logo } from "./Logo"
 
 /**
  * The main component (or entry point) for the React App
@@ -29,6 +30,7 @@ function App() {
     >
       <Page>
         <Header>
+          <Logo isDark />
           <MessageWrapper hasMessage={!!message}>
             {message}
           </MessageWrapper>

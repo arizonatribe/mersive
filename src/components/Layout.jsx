@@ -6,6 +6,22 @@ export const Main = styled.main`
   display: grid;
   grid-area: main;
   align-items: start;
+
+  @media ${p => p.theme.breakpoints.phone || "screen and (max-width: 599px)"} {
+    margin: 1em;
+  }
+
+  @media ${p => p.theme.breakpoints.tablet || "screen and (min-width: 600px)"} {
+    margin: 1em 3em;
+  }
+
+  @media ${p => p.theme.breakpoints.tabletLandscape || "screen and (min-width: 900px)"} {
+    margin: 2em 5em;
+  }
+
+  @media ${p => p.theme.breakpoints.desktop || "screen and (min-width: 1200px)"} {
+    margin: 5em 10em;
+  }
 `
 
 export const Page = styled.div`
@@ -23,14 +39,14 @@ export const Page = styled.div`
     @media ${p => p.theme.breakpoints.phone || "screen and (max-width: 599px)"} {
       display: grid;
       grid-template-columns: 1fr;
-      grid-template-rows: 50px 1fr;
+      grid-template-rows: 122px 1fr;
       grid-template-areas: 'header' 'main';
     }
 
     @media ${p => p.theme.breakpoints.tablet || "screen and (min-width: 600px)"} {
       display: grid;
       grid-template-columns: 1fr;
-      grid-template-rows: 50px 1fr;
+      grid-template-rows: 122px 1fr;
       grid-template-areas: 'header' 'main';
     }
   }
@@ -69,17 +85,11 @@ export const Header = styled.header`
     display: grid;
     grid-area: header;
     align-items: center;
-    align-content: start;
+    align-content: center;
     justify-items: center;
     grid-row-gap: 0;
     grid-template-rows: 48px 2px;
-    @media ${props => props.theme.breakpoints.phone || "screen and (max-width: 599px)"} {
-      grid-template-columns: 132px 1fr;
-      grid-template-areas: ". statusmessage";
-    }
-    @media ${props => props.theme.breakpoints.tablet || "screen and (min-width: 600px)"} {
-      grid-template-columns: 162px 1fr;
-      grid-template-areas: ". statusmessage";
-    }
+    grid-template-columns: 275px 200px 1fr;
+    grid-template-areas: ". logo statusmessage";
   }
 `

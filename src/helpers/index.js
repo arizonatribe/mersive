@@ -143,9 +143,9 @@ export function splitVersionIntoParts(val) {
  * @returns {number} A numeric sort value
  */
 export function statusSortValue(device) {
-  return device.inProgress
+  return device.isCurrent
     ? 1
-    : device.isCurrent
+    : device.inProgress
       ? 0
       : -1
 }

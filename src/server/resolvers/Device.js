@@ -1,6 +1,6 @@
 import { toDate} from "../../helpers/index.js"
 
-export const Device = {
+export default {
   lastUpdatedAt({ lastUpdatedAt }) {
     const dt = toDate(lastUpdatedAt)
     if (dt) {

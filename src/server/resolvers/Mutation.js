@@ -1,4 +1,4 @@
-export const Mutation = {
+export default {
   /**
    * Logs in a user by their credentials and issues an access token in return
    *
