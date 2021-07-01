@@ -1,10 +1,10 @@
-const chalk = require("chalk")
+import chalk from "chalk"
 
-const primary = "#66cd32"
-const secondary = "#656565"
+export const primary = "#66cd32"
+export const secondary = "#656565"
 
 /* eslint-disable max-len */
-const logo = chalk`
+export const logo = chalk`
 {bold.white @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@888@@@GGGGGGGG@@@@888@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@}
 {bold.white @@@@@@@@@@@@@@@@@@@@@@@@@@@@@88@G}{hex("${primary}") CLLfftttttttttttttttffLLC}{bold.white G@88@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@}
 {bold.white @@@@@@@@@@@@@@@@@@@@@@@@88@}{hex("${primary}") CLfttt1tttttttttttttttttttt111ttttfL}{bold.white C@88@@@@@@@@@@@@@@@@@@@@@@@@@}
@@ -51,10 +51,9 @@ const logo = chalk`
 {bold.white @@@@@@@@@@@@@@@@@@@@@@8@GC}{hex("${primary}") ftttt1ttttttt1ttt111t1tttttttttt11tttfLC}{bold.white @8@@@@@@@@@@@@@@@@@@@@@@@@}
 {bold.white @@@@@@@@@@@@@@@@@@@@@@@@@@@8@}{hex("${primary}") CLLftttttttttttttttttttttttttfLC}{bold.white G@8@@@@@@@@@@@@@@@@@@@@@@@@@@@@}
 {bold.white @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@88@@GCC}{hex("${primary}") LfffftttttfffLLC}{bold.white GG@@8@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@}
+{bold.white @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@888@@@GGGGGGGG@@@@888@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@}
 `
 /* eslint-enable max-len */
 
-const toConsole = () => console.log(logo)
-
-module.exports = toConsole
-module.exports = { logo, primary }
+/* eslint-disable-next-line no-console */
+export default () => console.log(logo)

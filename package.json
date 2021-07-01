@@ -44,6 +44,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "branding": "node scripts/branding.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "prepare": "cat src/server/db/sql/schema.sql src/server/db/sql/seed.sql src/server/db/sql/custom.sql | sqlite3 database.db",
